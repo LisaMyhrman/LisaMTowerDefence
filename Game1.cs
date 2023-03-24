@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
+using System.Collections.Generic;
 using Spline;
 //using System.IO;
 
@@ -8,6 +10,9 @@ namespace LisaMTowerDefence
 {
     public class Game1 : Game
     {
+
+        //på 5 e och f
+
         //reg-instances
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
@@ -32,6 +37,7 @@ namespace LisaMTowerDefence
         private MouseState mouseState;
 
         private GameObject test;
+        List<GameObject> placedObjects = new List<GameObject>();
 
         public Game1()
         {
@@ -95,6 +101,14 @@ namespace LisaMTowerDefence
             System.Diagnostics.Debug.WriteLine(mousePos);
             test.pos = mousePos;
 
+            if(mouseState.LeftButton == ButtonState.Pressed)
+            {
+                if(CanPlace(test))
+                {
+                    placedObjects.Add(test);
+                }
+            }
+
             catPos++;
 
             base.Update(gameTime);
@@ -113,6 +127,10 @@ namespace LisaMTowerDefence
             spriteBatch.Draw(renderTest, Vector2.Zero, Color.White);
 
             test.Draw(spriteBatch);
+            foreach(var obj in placedObjects)
+            {
+                obj.Draw(spriteBatch);
+            }
 
             //if(catPos<path.endT)
             //{
@@ -133,13 +151,15 @@ namespace LisaMTowerDefence
 
             //GraphicsDevice.Clear(Color.Transparent);
 
-            //spriteBatch.Draw(transTex, Vector2.Zero, Color.White);
+            spriteBatch.Draw(transTex, Vector2.Zero, Color.White);
             //spriteBatch.Draw(catTex, new Vector2(100,100), Color.White);
             spriteBatch.End();
 
             GraphicsDevice.SetRenderTarget(null);
         }
 
+
+        //KOLLA CANPLACE PÅ ETT LAGER MED INGET; RITA SEDAN TILL RENDERTARGET
         public bool CanPlace(GameObject g)
         {
             Color[] pixels = new Color[g.tex.Width * g.tex.Height];
