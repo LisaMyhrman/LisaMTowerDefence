@@ -26,6 +26,8 @@ namespace LisaMTowerDefence
 
         public void Draw(SpriteBatch sb)
         {
+
+            //draws only in one position?
             sb.Draw(tex, pos, Color.White);
         }
 

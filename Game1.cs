@@ -29,7 +29,7 @@ namespace LisaMTowerDefence
 
         //test place object
         private Vector2 mousePos;
-        private MouseState mouseState = Mouse.GetState();
+        private MouseState mouseState;
 
         private GameObject test;
 
@@ -58,17 +58,19 @@ namespace LisaMTowerDefence
             graphics.PreferredBackBufferHeight = windowHeight;
             graphics.PreferredBackBufferWidth = windowWidth;
             graphics.ApplyChanges();
-            
+
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            catTex = Content.Load<Texture2D>("fatcat");
 
+
+            catTex = Content.Load<Texture2D>("fatcat");
             transTex = Content.Load<Texture2D>("transparentSquareBackground");
 
             renderTest = new RenderTarget2D(GraphicsDevice, Window.ClientBounds.Width, Window.ClientBounds.Height);
 
+            
             mousePos = new Vector2(mouseState.X, mouseState.Y);
-            test = new GameObject(catTex, new Vector2(200,200), new Rectangle(0, 0, catTex.Width, catTex.Height));
+            test = new GameObject(catTex, new Vector2(100,100), new Rectangle(0, 0, catTex.Width, catTex.Height));
 
             //TÄNK PÅ RÄTT ORDNING
             DrawOnRenderTarget();
@@ -86,9 +88,11 @@ namespace LisaMTowerDefence
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
+            mouseState = Mouse.GetState();
             mousePos.X = mouseState.X;
             mousePos.Y = mouseState.Y;
 
+            System.Diagnostics.Debug.WriteLine(mousePos);
             test.pos = mousePos;
 
             catPos++;
@@ -129,7 +133,7 @@ namespace LisaMTowerDefence
 
             //GraphicsDevice.Clear(Color.Transparent);
 
-            spriteBatch.Draw(transTex, Vector2.Zero, Color.White);
+            //spriteBatch.Draw(transTex, Vector2.Zero, Color.White);
             //spriteBatch.Draw(catTex, new Vector2(100,100), Color.White);
             spriteBatch.End();
 
