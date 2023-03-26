@@ -11,10 +11,7 @@ namespace LisaMTowerDefence
 {
     public class Game1 : Game
     {
-
-        //på 5 e och f
-
-        //reg-instances
+        //standard-instances
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
 
@@ -24,21 +21,25 @@ namespace LisaMTowerDefence
 
         //spline
         private SimplePath path;
+        
 
         //textures
         private Texture2D catTex;
         private float catPos;
+        private Texture2D tinyCatTex;
 
         //rendertarget
         private Texture2D transTex;
         private RenderTarget2D renderTest;
 
-        //test place object
+        //object following mouse(currently selected object)
         private Vector2 mousePos;
         private MouseState mouseState;
 
-        private GameObject test;
-        List<GameObject> placedObjects = new List<GameObject>();
+        //towers
+        private Tower test;
+        //ska listan innehålla almänna towers, beroende på olika typer osvosv?
+        List<Tower> placedObjects = new List<Tower>();
 
         public Game1()
         {
@@ -49,18 +50,18 @@ namespace LisaMTowerDefence
 
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
-
+         
             path = new SimplePath(graphics.GraphicsDevice);
-           
-
+            path.Clean();
+    
             base.Initialize();
         }
 
         protected override void LoadContent()
         {
-            path = new SimplePath(graphics.GraphicsDevice);
-            path.generateDefaultPath();
+            //path = new SimplePath(graphics.GraphicsDevice);
+            //path.generateDefaultPath();
+            
 
             graphics.PreferredBackBufferHeight = windowHeight;
             graphics.PreferredBackBufferWidth = windowWidth;
@@ -72,24 +73,35 @@ namespace LisaMTowerDefence
 
             catTex = Content.Load<Texture2D>("fatcat");
             transTex = Content.Load<Texture2D>("transparentSquareBackground");
+            tinyCatTex = Content.Load<Texture2D>("cat");
+
 
             renderTest = new RenderTarget2D(GraphicsDevice, Window.ClientBounds.Width, Window.ClientBounds.Height);
 
             
             mousePos = new Vector2(mouseState.X, mouseState.Y);
-            test = new GameObject(catTex, new Vector2(0,0), new Rectangle(0, 0, catTex.Width, catTex.Height));
+            test = new Tower(catTex, new Vector2(0,0), new Rectangle(0, 0, catTex.Width, catTex.Height));
 
             //TÄNK PÅ RÄTT ORDNING
             DrawOnRenderTarget();
 
-            catPos = path.beginT;
-            path.SetPos(0,Vector2.Zero);
-            path.AddPoint(new Vector2(windowWidth, windowHeight));
 
-           
+            //MAKE PRETTIER PATH
+            //MAKE METHOD FOR PATH
+
+            path.AddPoint(Vector2.Zero);
+            path.SetPos(0,Vector2.Zero);
+            path.AddPoint(new Vector2(100, 100));
+            path.AddPoint(new Vector2(200, 100));
+            path.AddPoint(new Vector2(200, 200));
+            path.AddPoint(new Vector2(windowWidth - 100, windowHeight));
+            path.AddPoint(new Vector2(windowWidth, windowHeight));
+            
+
+            catPos = path.beginT;
 
         }
-
+        
         protected override void Update(GameTime gameTime)
         {
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
@@ -113,13 +125,13 @@ namespace LisaMTowerDefence
             {
                 if(CanPlace(test) == true)
                 {
-                    placedObjects.Add(new GameObject(catTex, mousePos, new Rectangle(0, 0, catTex.Width, catTex.Height)));
+                    placedObjects.Add(new Tower(catTex, mousePos, new Rectangle(0, 0, catTex.Width, catTex.Height)));
                     DrawOnRenderTarget();
                 }
             }
 
             //splinemovement
-            catPos++;
+            catPos = catPos + 3;
 
             base.Update(gameTime);
         }
@@ -131,19 +143,20 @@ namespace LisaMTowerDefence
             GraphicsDevice.Clear(Color.White);
 
             spriteBatch.Begin();
-            //path.Draw(spriteBatch);
+            path.Draw(spriteBatch);
             //path.DrawPoints(spriteBatch);
 
             spriteBatch.Draw(renderTest, Vector2.Zero, Color.White);
 
             test.Draw(spriteBatch);
-           
 
-            //if(catPos<path.endT)
-            //{
-            //    spriteBatch.Draw(catTex, path.GetPos(catPos), new Rectangle(0, 0, catTex.Width, catTex.Height), Color.White, 0f, new Vector2(catTex.Width / 2, catTex.Height / 2), 1f, SpriteEffects.None, 0f);
-            //    spriteBatch.End();
-            //}
+
+            if (catPos < path.endT)
+            {
+//BEHÖVER DENNA VARA SÅ GODDAMN LONG?
+                spriteBatch.Draw(tinyCatTex, path.GetPos(catPos), new Rectangle(0, 0, tinyCatTex.Width, tinyCatTex.Height), Color.White, 0f, new Vector2(tinyCatTex.Width / 2, tinyCatTex.Height / 2), 1f, SpriteEffects.None, 0f);
+            }
+
             spriteBatch.End();
 
             base.Draw(gameTime);
@@ -172,6 +185,7 @@ namespace LisaMTowerDefence
 
         public bool CanPlace(GameObject g)
         {
+//BUG: CLICKA UTANFÖR WINDOW = CRASH
             Color[] pixels = new Color[g.tex.Width * g.tex.Height];
             Color[] pixels2 = new Color[g.tex.Height * g.tex.Width];
             g.tex.GetData<Color>(pixels2);
