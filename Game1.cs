@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using Spline;
+using SharpDX.DirectWrite;
 //using System.IO;
 
 namespace LisaMTowerDefence
@@ -18,8 +19,8 @@ namespace LisaMTowerDefence
         private SpriteBatch spriteBatch;
 
         //windowsize
-        private int windowWidth = 850;
-        private int windowHeight = 650;
+        private int windowWidth = 1200;
+        private int windowHeight = 900;
 
         //spline
         private SimplePath path;
@@ -76,7 +77,7 @@ namespace LisaMTowerDefence
 
             
             mousePos = new Vector2(mouseState.X, mouseState.Y);
-            test = new GameObject(catTex, new Vector2(100,100), new Rectangle(0, 0, catTex.Width, catTex.Height));
+            test = new GameObject(catTex, new Vector2(0,0), new Rectangle(0, 0, catTex.Width, catTex.Height));
 
             //TÄNK PÅ RÄTT ORDNING
             DrawOnRenderTarget();
@@ -98,17 +99,26 @@ namespace LisaMTowerDefence
             mousePos.X = mouseState.X;
             mousePos.Y = mouseState.Y;
 
-            System.Diagnostics.Debug.WriteLine(mousePos);
+            
+            //KOM IHÅG ATT ÄVEN FLYTTA HITBOXEN
             test.pos = mousePos;
+            test.hitbox.X = (int)mousePos.X;
+            test.hitbox.Y = (int)mousePos.Y;
 
-            if(mouseState.LeftButton == ButtonState.Pressed)
+
+            //System.Diagnostics.Debug.WriteLine(CanPlace(test));
+            System.Diagnostics.Debug.WriteLine(mouseState.LeftButton.ToString());
+
+            if (mouseState.LeftButton == ButtonState.Pressed)
             {
-                if(CanPlace(test))
+                if(CanPlace(test) == true)
                 {
-                    placedObjects.Add(test);
+                    placedObjects.Add(new GameObject(catTex, mousePos, new Rectangle(0, 0, catTex.Width, catTex.Height)));
+                    DrawOnRenderTarget();
                 }
             }
 
+            //splinemovement
             catPos++;
 
             base.Update(gameTime);
@@ -118,7 +128,7 @@ namespace LisaMTowerDefence
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.White);
 
             spriteBatch.Begin();
             //path.Draw(spriteBatch);
@@ -127,10 +137,7 @@ namespace LisaMTowerDefence
             spriteBatch.Draw(renderTest, Vector2.Zero, Color.White);
 
             test.Draw(spriteBatch);
-            foreach(var obj in placedObjects)
-            {
-                obj.Draw(spriteBatch);
-            }
+           
 
             //if(catPos<path.endT)
             //{
@@ -149,28 +156,35 @@ namespace LisaMTowerDefence
             GraphicsDevice.Clear(Color.Transparent);
             spriteBatch.Begin();
 
+            foreach (var obj in placedObjects)
+            {
+                obj.Draw(spriteBatch);
+            }
+
             //GraphicsDevice.Clear(Color.Transparent);
 
-            spriteBatch.Draw(transTex, Vector2.Zero, Color.White);
+            //spriteBatch.Draw(transTex, Vector2.Zero, Color.White);
             //spriteBatch.Draw(catTex, new Vector2(100,100), Color.White);
             spriteBatch.End();
 
             GraphicsDevice.SetRenderTarget(null);
         }
 
-
-        //KOLLA CANPLACE PÅ ETT LAGER MED INGET; RITA SEDAN TILL RENDERTARGET
         public bool CanPlace(GameObject g)
         {
             Color[] pixels = new Color[g.tex.Width * g.tex.Height];
             Color[] pixels2 = new Color[g.tex.Height * g.tex.Width];
             g.tex.GetData<Color>(pixels2);
             renderTest.GetData(0, g.hitbox, pixels, 0, pixels.Length);
-            for(int i = 0; i < pixels.Length; i++)
-                {
+            //System.Diagnostics.Debug.WriteLine("pixels" + pixels[0].A.ToString());
+            //System.Diagnostics.Debug.WriteLine("pixels2" + pixels2[0].A.ToString());
+            for (int i = 0; i < pixels.Length; i++)
+            {
                 if (pixels[i].A > 0.0f && pixels2[i].A > 0.0f)
+                {
                     return false;
                 }
+            }
             return true;
         }
     }
