@@ -11,9 +11,20 @@ namespace LisaMTowerDefence
 {
     internal class Bullet : GameObject
     {
-        public Bullet(Texture2D texture, Vector2 position, Rectangle hitbox) : base (texture,position,hitbox)
-        {
+        Vector2 direction;
+        int speed;
 
+        public Bullet(Texture2D texture, Vector2 position, Rectangle hitbox, Vector2 direction, int speed) : base (texture,position,hitbox)
+        {
+            this.direction = direction;
+            this.speed = speed;
+        }
+
+        public void Update()
+        {
+//LOGISTICS REGARDING DIRECTION AND MOVEMENT
+            this.pos.X += direction.X * speed;
+            this.pos.Y += direction.Y * speed;
         }
     }
 }

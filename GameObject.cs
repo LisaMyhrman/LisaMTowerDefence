@@ -24,10 +24,8 @@ namespace LisaMTowerDefence
             this.hitbox = hitbox;
         }
 
-        public void Draw(SpriteBatch sb)
+        public virtual void Draw(SpriteBatch sb)
         {
-
-            //draws only in one position?
             sb.Draw(tex, pos, Color.White);
         }
 

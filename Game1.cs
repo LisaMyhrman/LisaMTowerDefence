@@ -4,8 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using Spline;
-using SharpDX.DirectWrite;
-//using System.IO;
+
 
 namespace LisaMTowerDefence
 {
@@ -36,8 +35,12 @@ namespace LisaMTowerDefence
         private Vector2 mousePos;
         private MouseState mouseState;
 
+        //enemies
+        private Enemy enemy;
+
         //towers
         private Tower test;
+
         //ska listan innehålla almänna towers, beroende på olika typer osvosv?
         List<Tower> placedObjects = new List<Tower>();
 
@@ -59,10 +62,6 @@ namespace LisaMTowerDefence
 
         protected override void LoadContent()
         {
-            //path = new SimplePath(graphics.GraphicsDevice);
-            //path.generateDefaultPath();
-            
-
             graphics.PreferredBackBufferHeight = windowHeight;
             graphics.PreferredBackBufferWidth = windowWidth;
             graphics.ApplyChanges();
@@ -81,13 +80,12 @@ namespace LisaMTowerDefence
             
             mousePos = new Vector2(mouseState.X, mouseState.Y);
             test = new Tower(catTex, new Vector2(0,0), new Rectangle(0, 0, catTex.Width, catTex.Height));
-
-            //TÄNK PÅ RÄTT ORDNING
+            
             DrawOnRenderTarget();
 
 
-            //MAKE PRETTIER PATH
-            //MAKE METHOD FOR PATH
+//MAKE PRETTIER PATH
+//MAKE METHOD FOR PATH
 
             path.AddPoint(Vector2.Zero);
             path.SetPos(0,Vector2.Zero);
@@ -99,6 +97,7 @@ namespace LisaMTowerDefence
             
 
             catPos = path.beginT;
+            enemy = new Enemy(tinyCatTex, new Vector2(catPos, catPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width));
 
         }
         
@@ -119,19 +118,32 @@ namespace LisaMTowerDefence
 
 
             //System.Diagnostics.Debug.WriteLine(CanPlace(test));
-            System.Diagnostics.Debug.WriteLine(mouseState.LeftButton.ToString());
+            //System.Diagnostics.Debug.WriteLine(mouseState.LeftButton.ToString());
 
             if (mouseState.LeftButton == ButtonState.Pressed)
             {
-                if(CanPlace(test) == true)
+
+                if (CanPlace(test) == true)
                 {
                     placedObjects.Add(new Tower(catTex, mousePos, new Rectangle(0, 0, catTex.Width, catTex.Height)));
                     DrawOnRenderTarget();
+                    //SÄTT TOWER SOM AKTIVT? AUTOMATISKT
+
                 }
+
+
             }
 
             //splinemovement
-            catPos = catPos + 3;
+            //speed, fix individual
+            catPos = catPos + 2;
+            //make foreach enemy, get their speed(count upwards in class itself)
+            enemy.pos = path.GetPos(catPos);
+
+            foreach(Tower t in placedObjects)
+            {
+                t.Update(gameTime);
+            }
 
             base.Update(gameTime);
         }
@@ -154,7 +166,9 @@ namespace LisaMTowerDefence
             if (catPos < path.endT)
             {
 //BEHÖVER DENNA VARA SÅ GODDAMN LONG?
-                spriteBatch.Draw(tinyCatTex, path.GetPos(catPos), new Rectangle(0, 0, tinyCatTex.Width, tinyCatTex.Height), Color.White, 0f, new Vector2(tinyCatTex.Width / 2, tinyCatTex.Height / 2), 1f, SpriteEffects.None, 0f);
+    //ENDA SOM ANVÄNDS ÄR ORIGIN
+                enemy.Draw(spriteBatch);
+                //spriteBatch.Draw(tinyCatTex, path.GetPos(catPos), new Rectangle(0, 0, tinyCatTex.Width, tinyCatTex.Height), Color.White, 0f, new Vector2(tinyCatTex.Width / 2, tinyCatTex.Height / 2), 1f, SpriteEffects.None, 0f);
             }
 
             spriteBatch.End();
@@ -185,21 +199,30 @@ namespace LisaMTowerDefence
 
         public bool CanPlace(GameObject g)
         {
-//BUG: CLICKA UTANFÖR WINDOW = CRASH
-            Color[] pixels = new Color[g.tex.Width * g.tex.Height];
-            Color[] pixels2 = new Color[g.tex.Height * g.tex.Width];
-            g.tex.GetData<Color>(pixels2);
-            renderTest.GetData(0, g.hitbox, pixels, 0, pixels.Length);
-            //System.Diagnostics.Debug.WriteLine("pixels" + pixels[0].A.ToString());
-            //System.Diagnostics.Debug.WriteLine("pixels2" + pixels2[0].A.ToString());
-            for (int i = 0; i < pixels.Length; i++)
+//BUG: CLICKA UTANFÖR WINDOW = CRASH, LÖST
+            if (mousePos.X > 0 && mousePos.X + g.tex.Width < windowWidth && mousePos.Y > 0 && mousePos.Y + g.tex.Height < windowHeight)
             {
-                if (pixels[i].A > 0.0f && pixels2[i].A > 0.0f)
+                Color[] pixels = new Color[g.tex.Width * g.tex.Height];
+                Color[] pixels2 = new Color[g.tex.Height * g.tex.Width];
+                g.tex.GetData<Color>(pixels2);
+                renderTest.GetData(0, g.hitbox, pixels, 0, pixels.Length);
+                //System.Diagnostics.Debug.WriteLine("pixels" + pixels[0].A.ToString());
+                //System.Diagnostics.Debug.WriteLine("pixels2" + pixels2[0].A.ToString());
+                for (int i = 0; i < pixels.Length; i++)
                 {
-                    return false;
+                    if (pixels[i].A > 0.0f && pixels2[i].A > 0.0f)
+                    {
+                        return false;
+                    }
                 }
+                return true;
             }
-            return true;
+            else
+            {
+                return false;
+            }
         }
+
+
     }
 }
