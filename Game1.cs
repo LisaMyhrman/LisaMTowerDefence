@@ -44,6 +44,9 @@ namespace LisaMTowerDefence
         //ska listan innehålla almänna towers, beroende på olika typer osvosv?
         List<Tower> placedObjects = new List<Tower>();
 
+        //shootingtests
+        private List<Bullet> bullets = new List<Bullet>();
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -66,19 +69,28 @@ namespace LisaMTowerDefence
             graphics.PreferredBackBufferWidth = windowWidth;
             graphics.ApplyChanges();
 
+            Assets.LoadTextures(Content);
+
+            //behövs inte senare
+            tinyCatTex = Assets.TinyCatTex;
+            catTex = Assets.catTex;
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
 
-            catTex = Content.Load<Texture2D>("fatcat");
-            transTex = Content.Load<Texture2D>("transparentSquareBackground");
-            tinyCatTex = Content.Load<Texture2D>("cat");
+            //catTex = Content.Load<Texture2D>("fatcat");
+            //transTex = Content.Load<Texture2D>("transparentSquareBackground");
+            //tinyCatTex = Content.Load<Texture2D>("cat");
+
+           
 
 
             renderTest = new RenderTarget2D(GraphicsDevice, Window.ClientBounds.Width, Window.ClientBounds.Height);
 
             
             mousePos = new Vector2(mouseState.X, mouseState.Y);
+
+            //skapa endast då torn valts
             test = new Tower(catTex, new Vector2(0,0), new Rectangle(0, 0, catTex.Width, catTex.Height));
             
             DrawOnRenderTarget();
@@ -110,8 +122,11 @@ namespace LisaMTowerDefence
             mousePos.X = mouseState.X;
             mousePos.Y = mouseState.Y;
 
+
+            //if 1,2,3,4(corresponding to towertypes) is pressed, spawn new tower ( MAKE METHOD)
             
             //KOM IHÅG ATT ÄVEN FLYTTA HITBOXEN
+            //OBJEKT SOM RÖR SIG MED MUSEN
             test.pos = mousePos;
             test.hitbox.X = (int)mousePos.X;
             test.hitbox.Y = (int)mousePos.Y;
@@ -120,30 +135,48 @@ namespace LisaMTowerDefence
             //System.Diagnostics.Debug.WriteLine(CanPlace(test));
             //System.Diagnostics.Debug.WriteLine(mouseState.LeftButton.ToString());
 
+            //PLACE TOWERS ( MAKE METHOD )
             if (mouseState.LeftButton == ButtonState.Pressed)
             {
-
                 if (CanPlace(test) == true)
                 {
                     placedObjects.Add(new Tower(catTex, mousePos, new Rectangle(0, 0, catTex.Width, catTex.Height)));
                     DrawOnRenderTarget();
-                    //SÄTT TOWER SOM AKTIVT? AUTOMATISKT
-
+                    //remove currenttower in hand()
                 }
-
-
             }
 
-            //splinemovement
+
+            //foreach tower, if tower.shooting = true, shootbullet();
+
+
+            //                      splinemovement
             //speed, fix individual
-            catPos = catPos + 2;
+            catPos = catPos + 1;
             //make foreach enemy, get their speed(count upwards in class itself)
             enemy.pos = path.GetPos(catPos);
 
             foreach(Tower t in placedObjects)
             {
                 t.Update(gameTime);
+                //CheckDistance(t);
+                //checkdistancemethod, returns vector 2 of position
+                if(CheckDistance(t))
+                {
+                    System.Diagnostics.Debug.WriteLine("in distance");
+                    if(t.isShooting)
+                    {
+                        bullets.Add(t.typeOfBullet);
+                    }
+                }
+                
             }
+
+            foreach (Bullet b in bullets)
+            {
+                b.Update();
+            }
+
 
             base.Update(gameTime);
         }
@@ -169,6 +202,11 @@ namespace LisaMTowerDefence
     //ENDA SOM ANVÄNDS ÄR ORIGIN
                 enemy.Draw(spriteBatch);
                 //spriteBatch.Draw(tinyCatTex, path.GetPos(catPos), new Rectangle(0, 0, tinyCatTex.Width, tinyCatTex.Height), Color.White, 0f, new Vector2(tinyCatTex.Width / 2, tinyCatTex.Height / 2), 1f, SpriteEffects.None, 0f);
+            }
+
+            foreach(Bullet b in bullets)
+            {
+                b.Draw(spriteBatch);
             }
 
             spriteBatch.End();
@@ -199,7 +237,7 @@ namespace LisaMTowerDefence
 
         public bool CanPlace(GameObject g)
         {
-//BUG: CLICKA UTANFÖR WINDOW = CRASH, LÖST
+//BUG: CLICKA UTANFÖR WINDOW = CRASH, SOVLED, TOO LONG STATEMENT?
             if (mousePos.X > 0 && mousePos.X + g.tex.Width < windowWidth && mousePos.Y > 0 && mousePos.Y + g.tex.Height < windowHeight)
             {
                 Color[] pixels = new Color[g.tex.Width * g.tex.Height];
@@ -221,6 +259,34 @@ namespace LisaMTowerDefence
             {
                 return false;
             }
+        }
+
+        //private void ShootBullet()
+        //{
+
+        //}
+
+        private bool CheckDistance(Tower t)
+        {
+                //Check through list of enemies
+                //else-statement? none
+
+//PICK DISTANCE HERE
+            if(GetDistance(t.GetTowerPos, enemy.pos) < 200)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private float GetDistance(Vector2 one, Vector2 two)
+        {
+            float X = one.X - two.X;
+            float Y = one.Y - two.Y;
+            return (float)Math.Sqrt((X*X) + (Y*Y));
         }
 
 
