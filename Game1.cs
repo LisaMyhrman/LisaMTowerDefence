@@ -24,7 +24,7 @@ namespace LisaMTowerDefence
 
         //textures
         private Texture2D catTex;
-        private float catPos;
+        private float enemyStartPos;
         private Texture2D tinyCatTex;
 
         //rendertarget
@@ -37,6 +37,7 @@ namespace LisaMTowerDefence
 
         //enemies
         private Enemy enemy;
+        private List<Enemy> enemies = new List<Enemy>();
 
         //towers
         private Tower test;
@@ -46,6 +47,8 @@ namespace LisaMTowerDefence
 
         //shootingtests
         private List<Bullet> bullets = new List<Bullet>();
+
+        
 
         public Game1()
         {
@@ -90,7 +93,7 @@ namespace LisaMTowerDefence
             
             mousePos = new Vector2(mouseState.X, mouseState.Y);
 
-            //skapa endast då torn valts
+//SKAPA ENDAST DÅ TORN VALTS
             test = new Tower(catTex, new Vector2(0,0), new Rectangle(0, 0, catTex.Width, catTex.Height));
             
             DrawOnRenderTarget();
@@ -106,10 +109,21 @@ namespace LisaMTowerDefence
             path.AddPoint(new Vector2(200, 200));
             path.AddPoint(new Vector2(windowWidth - 100, windowHeight));
             path.AddPoint(new Vector2(windowWidth, windowHeight));
-            
 
-            catPos = path.beginT;
-            enemy = new Enemy(tinyCatTex, new Vector2(catPos, catPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width));
+
+
+            //FIX LISTED ENEMIES
+
+            enemyStartPos = path.beginT;
+            enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width)));
+            enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width)));
+            //enemy = new Enemy(tinyCatTex, new Vector2(catPos, catPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width));
+
+            foreach (Enemy e in enemies)
+            {
+                e.positionOnPath = path.beginT;
+
+            }
 
         }
         
@@ -152,9 +166,15 @@ namespace LisaMTowerDefence
 
             //                      splinemovement
             //speed, fix individual
-            catPos = catPos + 1;
+            //catPos = catPos + 1;
             //make foreach enemy, get their speed(count upwards in class itself)
-            enemy.pos = path.GetPos(catPos);
+            //enemy.pos = path.GetPos(catPos);
+
+            foreach(Enemy e in enemies)
+            {
+                e.pos = path.GetPos(e.posOnPath);
+                e.Update();
+            }
 
             foreach(Tower t in placedObjects)
             {
@@ -172,10 +192,19 @@ namespace LisaMTowerDefence
                 
             }
 
-            foreach (Bullet b in bullets)
+            for(int i = 0; i < bullets.Count; i++)
             {
-                b.Update();
+                bullets[i].Update();
+                BulletCollision(bullets[i]);
             }
+
+            //foreach (Bullet b in bullets)
+            //{
+            //    b.Update();
+            //    BulletCollision(b);
+
+            //    //collisions reoccuring
+            //}
 
 
             base.Update(gameTime);
@@ -196,18 +225,28 @@ namespace LisaMTowerDefence
             test.Draw(spriteBatch);
 
 
-            if (catPos < path.endT)
+            //DRAW BULLETS NOT WORKING
+
+            for (int i = 0; i < bullets.Count; i++)
             {
-//BEHÖVER DENNA VARA SÅ GODDAMN LONG?
-    //ENDA SOM ANVÄNDS ÄR ORIGIN
-                enemy.Draw(spriteBatch);
-                //spriteBatch.Draw(tinyCatTex, path.GetPos(catPos), new Rectangle(0, 0, tinyCatTex.Width, tinyCatTex.Height), Color.White, 0f, new Vector2(tinyCatTex.Width / 2, tinyCatTex.Height / 2), 1f, SpriteEffects.None, 0f);
+                bullets[i].Draw(spriteBatch);
             }
 
-            foreach(Bullet b in bullets)
+            foreach (Enemy e in enemies)
             {
-                b.Draw(spriteBatch);
+                if (enemyStartPos < path.endT)
+                {
+                    //BEHÖVER DENNA VARA SÅ GODDAMN LONG?
+                    //ENDA SOM ANVÄNDS ÄR ORIGIN
+                    e.Draw(spriteBatch);
+                //enemy.Draw(spriteBatch);
+                //spriteBatch.Draw(tinyCatTex, path.GetPos(catPos), new Rectangle(0, 0, tinyCatTex.Width, tinyCatTex.Height), Color.White, 0f, new Vector2(tinyCatTex.Width / 2, tinyCatTex.Height / 2), 1f, SpriteEffects.None, 0f);
+                }
             }
+
+
+
+           
 
             spriteBatch.End();
 
@@ -271,17 +310,24 @@ namespace LisaMTowerDefence
                 //Check through list of enemies
                 //else-statement? none
 
+            foreach(Enemy e in enemies)
+            {
 //PICK DISTANCE HERE
-            if(GetDistance(t.GetTowerPos, enemy.pos) < 200)
-            {
-                t.ClosestEnemyPos = enemy.pos;
-                //System.Diagnostics.Debug.WriteLine(enemy.pos);
-                return true;
+                if(GetDistance(t.GetTowerPos, e.pos) < 200)
+                {
+                    t.ClosestEnemyPos = e.pos;
+                    //System.Diagnostics.Debug.WriteLine(enemy.pos);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+
             }
-            else
-            {
-                return false;
-            }
+
+            return false;
+
         }
 
         private float GetDistance(Vector2 one, Vector2 two)
@@ -291,6 +337,16 @@ namespace LisaMTowerDefence
             return (float)Math.Sqrt((X*X) + (Y*Y));
         }
 
-
+        private void BulletCollision(Bullet b)
+        {
+            foreach(Enemy e in enemies)
+            {
+                if(b.IsColliding(e.hitbox))
+                {
+                    System.Diagnostics.Debug.WriteLine("HIT");
+                    bullets.Remove(b);
+                }
+            }
+        }
     }
 }

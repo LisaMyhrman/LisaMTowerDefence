@@ -26,5 +26,10 @@ namespace LisaMTowerDefence
             this.pos.X += direction.X * speed;
             this.pos.Y += direction.Y * speed;
         }
+
+        public bool IsColliding(Rectangle otherHitbox)
+        {
+            return this.hitbox.Intersects(otherHitbox);
+        }
     }
 }
