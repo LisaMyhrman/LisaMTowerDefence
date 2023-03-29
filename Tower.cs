@@ -21,6 +21,7 @@ namespace LisaMTowerDefence
         private bool shooting;
         private Bullet bulletType;
         private Vector2 midPos;
+        private Vector2 closestEnemyPos;
 
 
         public Tower(Texture2D texture, Vector2 position, Rectangle hitbox) : base(texture, position, hitbox)
@@ -30,7 +31,8 @@ namespace LisaMTowerDefence
             //bullets = new List<Bullet>();
             shooting = false;
             //bulletType = new Bullet(tex, pos, hitbox, new Vector2(1, 1), 1);
-            midPos = new Vector2(position.X + texture.Width /2, position.Y + texture.Height / 2);   
+            midPos = new Vector2(position.X + texture.Width /2, position.Y + texture.Height / 2);
+            closestEnemyPos = new Vector2(0, 0);
         }
 
 
@@ -43,7 +45,7 @@ namespace LisaMTowerDefence
 
         private void Shooting()
         {
-            if(timer >= 5000)
+            if(timer >= 2000)
             {
 //SPAWN NEW BULLET, GIVE OUT POSITION FROM TOWER HERE?
                 System.Diagnostics.Debug.WriteLine("shot");
@@ -60,7 +62,16 @@ namespace LisaMTowerDefence
 
         private Vector2 GetDirection()
         {
-            return new Vector2(1,1);
+            float X;
+            float Y;
+            float distX = midPos.X - closestEnemyPos.X;
+            //float X = distX < 0 ? X = -1 : X = 1;
+            if(distX < 20) { X = 1; } else if(distX > -20) { X = -1; } else { X = 0; }
+            float distY = midPos.Y - closestEnemyPos.Y;
+            if (distY < 20) { Y = 1; } else if (distY > -20) { Y = -1; } else { Y = 0; }
+            //float Y = distY < 0 ? Y = -1 : Y = 1;
+            System.Diagnostics.Debug.WriteLine("x " + X +" y " + Y);
+            return new Vector2(X,Y);
         }
 
         public bool isShooting
@@ -71,12 +82,18 @@ namespace LisaMTowerDefence
 
         public Bullet typeOfBullet
         {
-            get { return new Bullet(Assets.TinyCatTex, midPos, hitbox, GetDirection(), 3); }
+            get { return new Bullet(Assets.TinyCatTex, midPos, hitbox, GetDirection(), 2); }
         }
 
         public Vector2 GetTowerPos
         {
             get { return midPos; }
+        }
+
+        public Vector2 ClosestEnemyPos
+        {
+            //get { return closestEnemyPos; }
+            set { closestEnemyPos = value; }
         }
 
 

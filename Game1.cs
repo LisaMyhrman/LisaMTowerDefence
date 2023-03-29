@@ -163,7 +163,7 @@ namespace LisaMTowerDefence
                 //checkdistancemethod, returns vector 2 of position
                 if(CheckDistance(t))
                 {
-                    System.Diagnostics.Debug.WriteLine("in distance");
+                    //System.Diagnostics.Debug.WriteLine("in distance");
                     if(t.isShooting)
                     {
                         bullets.Add(t.typeOfBullet);
@@ -274,6 +274,8 @@ namespace LisaMTowerDefence
 //PICK DISTANCE HERE
             if(GetDistance(t.GetTowerPos, enemy.pos) < 200)
             {
+                t.ClosestEnemyPos = enemy.pos;
+                //System.Diagnostics.Debug.WriteLine(enemy.pos);
                 return true;
             }
             else
