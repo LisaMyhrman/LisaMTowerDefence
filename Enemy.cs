@@ -12,25 +12,47 @@ namespace LisaMTowerDefence
 {
     internal class Enemy : GameObject
     {
-        private int speed;
-        public float posOnPath;
+        private float speed;
+        private float posOnPath;
+        private int health;
 
-        public Enemy(Texture2D texture, Vector2 position, Rectangle hitbox) : base(texture,position,hitbox)
+
+
+        public Enemy(Texture2D texture, Vector2 position, Rectangle hitbox, float speed, int health) : base(texture, position, hitbox)
         {
-            speed = 2;
+            this.speed = speed;
             posOnPath = 0;
-//SET TILL PATH START
+            this.health = health;
         }
+
+        //MAKE HITBOX SLIGHTLY SMALER FOR EASE?, PIXELPERFECT COLLISIONS?
 
         public void Update()
         {
             posOnPath = posOnPath + speed;
+            hitbox.X = (int)pos.X;
+            hitbox.Y = (int)pos.Y;
+
+            //if(health < 2)
+            //{
+            //    //change based on health :)
+            //}
         }
 
         public float positionOnPath
         {
             get { return posOnPath; }
             set { posOnPath = value; }
+        }
+
+        public void HealthMaster(int damage)
+        {
+            health = health - damage;
+        }
+
+        public int Health
+        {
+            get { return health; }
         }
 
         //WORKS WITHOUT SPECIFIC DRAW, ONLY NEEDS ORIGIN CHANGED TO MOVE CORRECTLY

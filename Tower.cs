@@ -82,7 +82,7 @@ namespace LisaMTowerDefence
 
         public Bullet typeOfBullet
         {
-            get { return new Bullet(Assets.TinyCatTex, midPos, hitbox, GetDirection(), 2); }
+            get { return new Bullet(Assets.TinyCatTex, midPos, new Rectangle((int)midPos.X, (int)midPos.Y ,Assets.TinyCatTex.Width, Assets.TinyCatTex.Height), GetDirection(), 2, 1); }
         }
 
         public Vector2 GetTowerPos
@@ -92,7 +92,7 @@ namespace LisaMTowerDefence
 
         public Vector2 ClosestEnemyPos
         {
-            //get { return closestEnemyPos; }
+            get { return closestEnemyPos; }
             set { closestEnemyPos = value; }
         }
 

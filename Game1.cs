@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using Spline;
-
+using System.Linq;
 
 namespace LisaMTowerDefence
 {
@@ -115,14 +115,13 @@ namespace LisaMTowerDefence
             //FIX LISTED ENEMIES
 
             enemyStartPos = path.beginT;
-            enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width)));
-            enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width)));
+            enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width), 2.0f, 2));
+            enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width), 1.0f, 2));
             //enemy = new Enemy(tinyCatTex, new Vector2(catPos, catPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width));
 
             foreach (Enemy e in enemies)
             {
                 e.positionOnPath = path.beginT;
-
             }
 
         }
@@ -170,17 +169,32 @@ namespace LisaMTowerDefence
             //make foreach enemy, get their speed(count upwards in class itself)
             //enemy.pos = path.GetPos(catPos);
 
-            foreach(Enemy e in enemies)
+            //foreach(Enemy e in enemies)
+            //{
+            //    e.pos = path.GetPos(e.positionOnPath);
+            //    e.Update();
+            //    System.Diagnostics.Debug.WriteLine(e.Health);
+            //    if(e.Health <= 0)
+            //    {
+            //        enemies.Remove(e);
+            //    }
+            //}
+
+            for (int i = 0; i < enemies.Count; i++)
             {
-                e.pos = path.GetPos(e.posOnPath);
-                e.Update();
+                enemies[i].pos = path.GetPos(enemies[i].positionOnPath);
+                enemies[i].Update();
+                System.Diagnostics.Debug.WriteLine(enemies[i].Health);
+                if (enemies[i].Health <= 0)
+                {
+                    enemies.RemoveAt(i);
+                }
+
             }
 
-            foreach(Tower t in placedObjects)
+            foreach (Tower t in placedObjects)
             {
                 t.Update(gameTime);
-                //CheckDistance(t);
-                //checkdistancemethod, returns vector 2 of position
                 if(CheckDistance(t))
                 {
                     //System.Diagnostics.Debug.WriteLine("in distance");
@@ -192,7 +206,7 @@ namespace LisaMTowerDefence
                 
             }
 
-            for(int i = 0; i < bullets.Count; i++)
+            for (int i = 0; i < bullets.Count; i++)
             {
                 bullets[i].Update();
                 BulletCollision(bullets[i]);
@@ -232,6 +246,11 @@ namespace LisaMTowerDefence
                 bullets[i].Draw(spriteBatch);
             }
 
+            //foreach(Bullet b in bullets)
+            //{
+            //    b.Draw(spriteBatch);
+            //}
+
             foreach (Enemy e in enemies)
             {
                 if (enemyStartPos < path.endT)
@@ -243,10 +262,6 @@ namespace LisaMTowerDefence
                 //spriteBatch.Draw(tinyCatTex, path.GetPos(catPos), new Rectangle(0, 0, tinyCatTex.Width, tinyCatTex.Height), Color.White, 0f, new Vector2(tinyCatTex.Width / 2, tinyCatTex.Height / 2), 1f, SpriteEffects.None, 0f);
                 }
             }
-
-
-
-           
 
             spriteBatch.End();
 
@@ -313,17 +328,17 @@ namespace LisaMTowerDefence
             foreach(Enemy e in enemies)
             {
 //PICK DISTANCE HERE
-                if(GetDistance(t.GetTowerPos, e.pos) < 200)
+                if(GetDistance(t.GetTowerPos, e.pos) < 300)
                 {
                     t.ClosestEnemyPos = e.pos;
                     //System.Diagnostics.Debug.WriteLine(enemy.pos);
                     return true;
+
                 }
                 else
                 {
-                    return false;
+                    continue;
                 }
-
             }
 
             return false;
@@ -344,6 +359,7 @@ namespace LisaMTowerDefence
                 if(b.IsColliding(e.hitbox))
                 {
                     System.Diagnostics.Debug.WriteLine("HIT");
+                    e.HealthMaster(b.Damage);
                     bullets.Remove(b);
                 }
             }
