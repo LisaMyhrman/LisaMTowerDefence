@@ -9,13 +9,19 @@ using Microsoft.Xna.Framework.Input;
 
 namespace LisaMTowerDefence
 {
-    internal class GameManager
+    internal static class EconomyTracker
     {
+        static int currentCoins;
 
+        public static void AlterCoins(int value)
+        {
+            currentCoins += value;
+        }
 
-
-
-
+        public static int GetCoins()
+        {
+            return currentCoins;
+        }
 
     }
 }

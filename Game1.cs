@@ -34,6 +34,7 @@ namespace LisaMTowerDefence
         //object following mouse(currently selected object)
         private Vector2 mousePos;
         private MouseState mouseState;
+        private KeyboardState keyState;
 
         //enemies
         private Enemy enemy;
@@ -41,6 +42,7 @@ namespace LisaMTowerDefence
 
         //towers
         private Tower test;
+        private Tower chosenTower = null;
 
         //ska listan innehålla almänna towers, beroende på olika typer osvosv?
         List<Tower> placedObjects = new List<Tower>();
@@ -94,7 +96,9 @@ namespace LisaMTowerDefence
             mousePos = new Vector2(mouseState.X, mouseState.Y);
 
 //SKAPA ENDAST DÅ TORN VALTS
-            test = new Tower(catTex, new Vector2(0,0), new Rectangle(0, 0, catTex.Width, catTex.Height));
+            //test = new Tower(catTex, new Vector2(0,0), new Rectangle(0, 0, catTex.Width, catTex.Height));
+
+            
             
             DrawOnRenderTarget();
 
@@ -115,8 +119,8 @@ namespace LisaMTowerDefence
             //FIX LISTED ENEMIES
 
             enemyStartPos = path.beginT;
-            enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width), 2.0f, 2));
-            enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width), 1.0f, 2));
+            enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width), 2.0f, 2, 3));
+            enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width), 1.0f, 2, 1));
             //enemy = new Enemy(tinyCatTex, new Vector2(catPos, catPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width));
 
             foreach (Enemy e in enemies)
@@ -132,64 +136,58 @@ namespace LisaMTowerDefence
                 Exit();
 
             mouseState = Mouse.GetState();
+            keyState = Keyboard.GetState();
             mousePos.X = mouseState.X;
             mousePos.Y = mouseState.Y;
 
+            System.Diagnostics.Debug.WriteLine(EconomyTracker.GetCoins());
+
+
+
 
             //if 1,2,3,4(corresponding to towertypes) is pressed, spawn new tower ( MAKE METHOD)
-            
-            //KOM IHÅG ATT ÄVEN FLYTTA HITBOXEN
-            //OBJEKT SOM RÖR SIG MED MUSEN
-            test.pos = mousePos;
-            test.hitbox.X = (int)mousePos.X;
-            test.hitbox.Y = (int)mousePos.Y;
 
-
-            //System.Diagnostics.Debug.WriteLine(CanPlace(test));
-            //System.Diagnostics.Debug.WriteLine(mouseState.LeftButton.ToString());
-
-            //PLACE TOWERS ( MAKE METHOD )
-            if (mouseState.LeftButton == ButtonState.Pressed)
+            if(chosenTower == null)
             {
-                if (CanPlace(test) == true)
+//FIX COST OF TOWERS
+                if (keyState.IsKeyDown(Keys.E))// && chosenTower.Cost < EconomyTracker.GetCoins())
                 {
-                    placedObjects.Add(new Tower(catTex, mousePos, new Rectangle(0, 0, catTex.Width, catTex.Height)));
+                    chosenTower = new Tower(catTex, new Vector2(0, 0), new Rectangle(0, 0, catTex.Width, catTex.Height));
+                }
+                
+            }
+            else
+            {
+                chosenTower.pos = mousePos;
+                chosenTower.hitbox.X = (int)mousePos.X;
+                chosenTower.hitbox.Y = (int)mousePos.Y;
+            }
+            
+
+            //METHOD?
+            if (mouseState.LeftButton == ButtonState.Pressed && chosenTower != null)
+            {
+                if (CanPlace(chosenTower) == true)
+                {
+//CURRENTLY SPAWN QUICKLY IN CORNER
+                    placedObjects.Add(new Tower(catTex, mousePos, new Rectangle((int)mousePos.X, (int)mousePos.Y, catTex.Width, catTex.Height)));
                     DrawOnRenderTarget();
-                    //remove currenttower in hand()
+                    chosenTower = null;
+                  
                 }
             }
 
-
-            //foreach tower, if tower.shooting = true, shootbullet();
-
-
-            //                      splinemovement
-            //speed, fix individual
-            //catPos = catPos + 1;
-            //make foreach enemy, get their speed(count upwards in class itself)
-            //enemy.pos = path.GetPos(catPos);
-
-            //foreach(Enemy e in enemies)
-            //{
-            //    e.pos = path.GetPos(e.positionOnPath);
-            //    e.Update();
-            //    System.Diagnostics.Debug.WriteLine(e.Health);
-            //    if(e.Health <= 0)
-            //    {
-            //        enemies.Remove(e);
-            //    }
-            //}
 
             for (int i = 0; i < enemies.Count; i++)
             {
                 enemies[i].pos = path.GetPos(enemies[i].positionOnPath);
                 enemies[i].Update();
-                System.Diagnostics.Debug.WriteLine(enemies[i].Health);
+                //System.Diagnostics.Debug.WriteLine(enemies[i].Health);
                 if (enemies[i].Health <= 0)
                 {
+                    EconomyTracker.AlterCoins(enemies[i].Value);
                     enemies.RemoveAt(i);
                 }
-
             }
 
             foreach (Tower t in placedObjects)
@@ -212,15 +210,6 @@ namespace LisaMTowerDefence
                 BulletCollision(bullets[i]);
             }
 
-            //foreach (Bullet b in bullets)
-            //{
-            //    b.Update();
-            //    BulletCollision(b);
-
-            //    //collisions reoccuring
-            //}
-
-
             base.Update(gameTime);
         }
 
@@ -236,7 +225,9 @@ namespace LisaMTowerDefence
 
             spriteBatch.Draw(renderTest, Vector2.Zero, Color.White);
 
-            test.Draw(spriteBatch);
+            if(chosenTower != null)
+            {chosenTower.Draw(spriteBatch);}
+            
 
 
             //DRAW BULLETS NOT WORKING

@@ -15,14 +15,15 @@ namespace LisaMTowerDefence
         private float speed;
         private float posOnPath;
         private int health;
+        private int value;
 
 
-
-        public Enemy(Texture2D texture, Vector2 position, Rectangle hitbox, float speed, int health) : base(texture, position, hitbox)
+        public Enemy(Texture2D texture, Vector2 position, Rectangle hitbox, float speed, int health, int value) : base(texture, position, hitbox)
         {
             this.speed = speed;
             posOnPath = 0;
             this.health = health;
+            this.value = value;
         }
 
         //MAKE HITBOX SLIGHTLY SMALER FOR EASE?, PIXELPERFECT COLLISIONS?
@@ -53,6 +54,11 @@ namespace LisaMTowerDefence
         public int Health
         {
             get { return health; }
+        }
+
+        public int Value
+        {
+            get { return value; }
         }
 
         //WORKS WITHOUT SPECIFIC DRAW, ONLY NEEDS ORIGIN CHANGED TO MOVE CORRECTLY

@@ -22,17 +22,17 @@ namespace LisaMTowerDefence
         private Bullet bulletType;
         private Vector2 midPos;
         private Vector2 closestEnemyPos;
+        private int cost;
 
 
         public Tower(Texture2D texture, Vector2 position, Rectangle hitbox) : base(texture, position, hitbox)
         {
-            //isActive = false;
             timer = 0;
-            //bullets = new List<Bullet>();
             shooting = false;
-            //bulletType = new Bullet(tex, pos, hitbox, new Vector2(1, 1), 1);
             midPos = new Vector2(position.X + texture.Width /2, position.Y + texture.Height / 2);
             closestEnemyPos = new Vector2(0, 0);
+            //COST FOR EACH TOWER
+            cost = 1;
         }
 
 
@@ -94,6 +94,11 @@ namespace LisaMTowerDefence
         {
             get { return closestEnemyPos; }
             set { closestEnemyPos = value; }
+        }
+
+        public int Cost
+        {
+            get { return cost; }
         }
 
 
