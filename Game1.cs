@@ -152,8 +152,16 @@ namespace LisaMTowerDefence
 //FIX COST OF TOWERS
                 if (keyState.IsKeyDown(Keys.E))// && chosenTower.Cost < EconomyTracker.GetCoins())
                 {
-                    chosenTower = new Tower(catTex, new Vector2(0, 0), new Rectangle(0, 0, catTex.Width, catTex.Height));
+                    //standardtower
+                    //chosenTower = new Tower(catTex, new Vector2(0, 0), new Rectangle(0, 0, catTex.Width, catTex.Height));
+                    chosenTower = new Tower(catTex, mousePos, new Rectangle((int)mousePos.X, (int)mousePos.Y, catTex.Width, catTex.Height),1, 4000, 300);
                 }
+                else if(keyState.IsKeyDown(Keys.F))
+                {
+                    chosenTower = new Tower(catTex, mousePos, new Rectangle((int)mousePos.X, (int)mousePos.Y, catTex.Width, catTex.Height),2, 1000, 500);
+                }
+
+//POSSIBILITY FOR DESIGN YOUR OWN TOWER
                 
             }
             else
@@ -169,13 +177,15 @@ namespace LisaMTowerDefence
             {
                 if (CanPlace(chosenTower) == true)
                 {
-//CURRENTLY SPAWN QUICKLY IN CORNER
-                    placedObjects.Add(new Tower(catTex, mousePos, new Rectangle((int)mousePos.X, (int)mousePos.Y, catTex.Width, catTex.Height)));
+//MIGHT BE A PROBLEM WITH LIST NULLING?
+                    //placedObjects.Add(new Tower(catTex, mousePos, new Rectangle((int)mousePos.X, (int)mousePos.Y, catTex.Width, catTex.Height)));
+                    placedObjects.Add(chosenTower);
                     DrawOnRenderTarget();
                     chosenTower = null;
                   
                 }
             }
+                
 
 
             for (int i = 0; i < enemies.Count; i++)
@@ -319,7 +329,7 @@ namespace LisaMTowerDefence
             foreach(Enemy e in enemies)
             {
 //PICK DISTANCE HERE
-                if(GetDistance(t.GetTowerPos, e.pos) < 300)
+                if(GetDistance(t.GetTowerPos, e.pos) < t.Reach)
                 {
                     t.ClosestEnemyPos = e.pos;
                     //System.Diagnostics.Debug.WriteLine(enemy.pos);

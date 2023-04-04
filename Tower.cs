@@ -15,24 +15,37 @@ namespace LisaMTowerDefence
 {
     internal class Tower : GameObject
     {
-        //private bool isActive;
+        
+        //STANDARDTOWER
+
         private float timer;
-        //private List<Bullet> bullets;
         private bool shooting;
         private Bullet bulletType;
         private Vector2 midPos;
         private Vector2 closestEnemyPos;
         private int cost;
+        private int reloadShotMiliSec;
+        private int reach;
 
 
-        public Tower(Texture2D texture, Vector2 position, Rectangle hitbox) : base(texture, position, hitbox)
+        public Tower(Texture2D texture, Vector2 position, Rectangle hitbox, int cost, int reloadShotMiliSec, int reach) : base(texture, position, hitbox)
         {
             timer = 0;
             shooting = false;
-            midPos = new Vector2(position.X + texture.Width /2, position.Y + texture.Height / 2);
+            midPos = new Vector2(position.X + texture.Width / 2, position.Y + texture.Height / 2);
             closestEnemyPos = new Vector2(0, 0);
-            //COST FOR EACH TOWER
-            cost = 1;
+            //SPECIFIK FOR EACH TOWERTYPE
+            this.cost = cost;
+            this.reloadShotMiliSec = reloadShotMiliSec;
+            this.reach = reach;
+
+            
+
+
+            //cost = 1;
+            //reloadShotMiliSec = 2000;
+            //cost, reloadShotmilisec, bulletType?
+
         }
 
 
@@ -45,14 +58,11 @@ namespace LisaMTowerDefence
 
         private void Shooting()
         {
-            if(timer >= 2000)
+            if(timer >= reloadShotMiliSec)
             {
-//SPAWN NEW BULLET, GIVE OUT POSITION FROM TOWER HERE?
                 System.Diagnostics.Debug.WriteLine("shot");
                 timer = 0;
                 shooting = true;
-                //get tower information(speed of bullets, etc)
-                //send true boolean to gamemanager
             }
             else
             {
@@ -65,11 +75,9 @@ namespace LisaMTowerDefence
             float X;
             float Y;
             float distX = midPos.X - closestEnemyPos.X;
-            //float X = distX < 0 ? X = -1 : X = 1;
             if(distX < 20) { X = 1; } else if(distX > -20) { X = -1; } else { X = 0; }
             float distY = midPos.Y - closestEnemyPos.Y;
             if (distY < 20) { Y = 1; } else if (distY > -20) { Y = -1; } else { Y = 0; }
-            //float Y = distY < 0 ? Y = -1 : Y = 1;
             System.Diagnostics.Debug.WriteLine("x " + X +" y " + Y);
             return new Vector2(X,Y);
         }
@@ -85,6 +93,8 @@ namespace LisaMTowerDefence
             get { return new Bullet(Assets.TinyCatTex, midPos, new Rectangle((int)midPos.X, (int)midPos.Y ,Assets.TinyCatTex.Width, Assets.TinyCatTex.Height), GetDirection(), 2, 1); }
         }
 
+
+//MIDDLEPOSITION FUCKING UP
         public Vector2 GetTowerPos
         {
             get { return midPos; }
@@ -101,6 +111,9 @@ namespace LisaMTowerDefence
             get { return cost; }
         }
 
-
+        public int Reach
+        {
+            get { return reach; }
+        }
     }
 }
