@@ -8,9 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using SharpDX.Direct3D9;
 
-//MAKE UNDERCLASSES DEPENDING ON WHAT KIND OF TOWER
 
 namespace LisaMTowerDefence
 {
@@ -29,6 +27,8 @@ namespace LisaMTowerDefence
         private int reach;
         private int towerType;
 
+        public Color tint { get; set; }
+
 
         public Tower(Texture2D texture, Vector2 position, Rectangle hitbox, int towerType) : base(texture, position, hitbox)
         {
@@ -36,14 +36,10 @@ namespace LisaMTowerDefence
             shooting = false;
             midPos = new Vector2(position.X + texture.Width / 2, position.Y + texture.Height / 2);
             closestEnemyPos = new Vector2(0, 0);
-            //SPECIFIK FOR EACH TOWERTYPE
-            //this.cost = cost;
-            //this.reloadShotMiliSec = reloadShotMiliSec;
-            //this.reach = reach;
-            //int cost, int reloadShotMiliSec, int reach
             this.towerType = towerType;
+            tint = Color.White;
 
-            //SWITCHCASE
+            //SWITCHCASE??
             if(towerType == 1)
             {
                 cost = 1;
@@ -52,18 +48,10 @@ namespace LisaMTowerDefence
             }
             else if(towerType == 2)
             {
-                cost = 2;
+                cost = 3;
                 reach = 600;
-                reloadShotMiliSec = 500;
+                reloadShotMiliSec = 2000;
             }
-
-
-
-
-            //cost = 1;
-            //reloadShotMiliSec = 2000;
-            //cost, reloadShotmilisec, bulletType?
-
         }
 
 
@@ -74,19 +62,29 @@ namespace LisaMTowerDefence
       
         }
 
+        public override void Draw(SpriteBatch spriteBatch)
+        {
+            spriteBatch.Draw(tex, pos, tint);
+        }
+
+        //hoppa fram o tillbaka naj
         private void Shooting()
         {
 //INTE SNYGGAST ATT HA MIDPOS HÄR
+
+//FIX GRANNY SHOOTING ANIMATION
             midPos.X = (pos.X + tex.Width / 2);
             midPos.Y = (pos.Y + tex.Height / 2);
             if (timer >= reloadShotMiliSec)
             {
-                System.Diagnostics.Debug.WriteLine("shot");
+                //System.Diagnostics.Debug.WriteLine("shot");
                 timer = 0;
                 shooting = true;
+                //tex = Assets.granny1_2;
             }
             else
             {
+                //tex = Assets.granny1;
                 shooting = false;
             }
         }
@@ -99,7 +97,7 @@ namespace LisaMTowerDefence
             if(distX < 20) { X = 1; } else if(distX > -20) { X = -1; } else { X = 0; }
             float distY = midPos.Y - closestEnemyPos.Y;
             if (distY < 20) { Y = 1; } else if (distY > -20) { Y = -1; } else { Y = 0; }
-            System.Diagnostics.Debug.WriteLine("x " + X +" y " + Y);
+            //System.Diagnostics.Debug.WriteLine("x " + X +" y " + Y);
             return new Vector2(X,Y);
         }
 
@@ -111,9 +109,10 @@ namespace LisaMTowerDefence
 
 
 //MAKE LIST OF TOWERS + THEIR TYPE OF BULLET
+//new bullet method
         public Bullet typeOfBullet
         {
-            get { return new Bullet(Assets.TinyCatTex, midPos, new Rectangle((int)midPos.X, (int)midPos.Y ,Assets.TinyCatTex.Width, Assets.TinyCatTex.Height), GetDirection(), 2, 1); }
+            get { return new Bullet(Assets.yarn1, midPos, new Rectangle((int)midPos.X, (int)midPos.Y ,Assets.yarn1.Width, Assets.yarn1.Height), GetDirection(), 1); }
         }
 
         public Vector2 GetTowerPos

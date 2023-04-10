@@ -15,29 +15,50 @@ namespace LisaMTowerDefence
         private float speed;
         private float posOnPath;
         private int health;
+        private int startHealth;
         private int value;
+        private int enemyType;
+        private float animateTimer;
+        private float animationInterval;
 
-
-        public Enemy(Texture2D texture, Vector2 position, Rectangle hitbox, float speed, int health, int value) : base(texture, position, hitbox)
+        public Enemy(Texture2D texture, Vector2 position, Rectangle hitbox, int enemyType) : base(texture, position, hitbox)
         {
-            this.speed = speed;
             posOnPath = 0;
-            this.health = health;
-            this.value = value;
+            animateTimer = 0;
+            animationInterval = 1000;
+
+            if(enemyType == 0)
+            {
+                speed = 1.0f;
+                health = 2;
+                value = 2;
+            }
+            else if(enemyType == 1)
+            {
+                speed = 2.0f;
+                health = 3;
+                value = 3;
+            }
+            startHealth = health;
+
         }
 
         //MAKE HITBOX SLIGHTLY SMALER FOR EASE?, PIXELPERFECT COLLISIONS?
 
-        public void Update()
+        public void Update(GameTime gameTime)
         {
+            animateTimer += gameTime.ElapsedGameTime.Milliseconds;
             posOnPath = posOnPath + speed;
             hitbox.X = (int)pos.X;
             hitbox.Y = (int)pos.Y;
+            //System.Diagnostics.Debug.WriteLine(animateTimer);
+            Animate();
+        }
 
-            //if(health < 2)
-            //{
-            //    //change based on health :)
-            //}
+        public void DrawHealthBar(SpriteBatch spriteBatch)
+        {
+//bars need to be bigger, draw new/scale them
+            spriteBatch.Draw(Assets.confusion, new Rectangle((int)pos.X, (int)pos.Y - Assets.confusion.Height, (Assets.confusion.Width / startHealth) * health, Assets.confusion.Height), new Rectangle(0, 0, (Assets.confusion.Width / startHealth) * health, Assets.confusion.Height), Color.White);
         }
 
         public float positionOnPath
@@ -59,6 +80,23 @@ namespace LisaMTowerDefence
         public int Value
         {
             get { return value; }
+        }
+
+        public void Animate()
+        {
+            if(animateTimer >= animationInterval)
+            {
+                tex = Assets.catTex2;
+            }
+            else
+            {
+                tex = Assets.tinyCatTex;
+            }
+
+            if(animateTimer >= animationInterval*2)
+            {
+                animateTimer = 0;
+            }
         }
 
         //WORKS WITHOUT SPECIFIC DRAW, ONLY NEEDS ORIGIN CHANGED TO MOVE CORRECTLY

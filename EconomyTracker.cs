@@ -11,7 +11,7 @@ namespace LisaMTowerDefence
 {
     internal static class EconomyTracker
     {
-        static int currentCoins;
+        static int currentCoins = 2;
 
         public static void AlterCoins(int value)
         {

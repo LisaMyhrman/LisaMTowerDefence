@@ -5,7 +5,8 @@ using System;
 using System.Collections.Generic;
 using Spline;
 using Microsoft.Xna.Framework.Content;
-using SharpDX.Direct3D9;
+using WindowsForm;
+using System.Drawing.Text;
 
 namespace LisaMTowerDefence
 {
@@ -14,6 +15,7 @@ namespace LisaMTowerDefence
        //FIX WINDOWSIZE FROM GAME1?
         private int windowWidth = 1200;
         private int windowHeight = 900;
+
 
         //spline
         private SimplePath path;
@@ -49,63 +51,36 @@ namespace LisaMTowerDefence
         private List<Bullet> bullets = new List<Bullet>();
 
 
+        //partikeltest
+        private ParticleEmitter particleEmitter;
+
+        //waves
+        private int waveNumber;
+        private int prevWaveNumber;
+        private float waveTimer;
+        
+    
+
+
 
         public void LoadGame(GraphicsDevice graphics, ContentManager Content, SpriteBatch spriteBatch)
         {
+
             path = new SimplePath(graphics);
             path.Clean();
 
-
+            waveNumber = 1;
             Assets.LoadTextures(Content);
 
             //behövs inte senare
-            tinyCatTex = Assets.TinyCatTex;
+            tinyCatTex = Assets.tinyCatTex;
             catTex = Assets.catTex;
 
-
-           
-            //spriteBatch = new SpriteBatch(graphics);
-
-
-            //catTex = Content.Load<Texture2D>("fatcat");
-            //transTex = Content.Load<Texture2D>("transparentSquareBackground");
-            //tinyCatTex = Content.Load<Texture2D>("cat");
-
-
-
-
             renderTest = new RenderTarget2D(graphics, windowWidth, windowHeight);
-
-
             mousePos = new Vector2(mouseState.X, mouseState.Y);
-
-            //SKAPA ENDAST DÅ TORN VALTS
-            //test = new Tower(catTex, new Vector2(0,0), new Rectangle(0, 0, catTex.Width, catTex.Height));
-
-
-
             DrawOnRenderTarget(graphics, spriteBatch);
-
-
-            //MAKE PRETTIER PATH
-            //MAKE METHOD FOR PATH
-
-            path.AddPoint(Vector2.Zero);
-            path.SetPos(0, Vector2.Zero);
-            path.AddPoint(new Vector2(100, 100));
-            path.AddPoint(new Vector2(200, 100));
-            path.AddPoint(new Vector2(200, 200));
-            path.AddPoint(new Vector2(windowWidth - 100, windowHeight));
-            path.AddPoint(new Vector2(windowWidth, windowHeight));
-
-
-
-            //FIX LISTED ENEMIES
-
+            MakePath();
             enemyStartPos = path.beginT;
-            enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width), 2.0f, 2, 3));
-            enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width), 1.0f, 2, 1));
-            //enemy = new Enemy(tinyCatTex, new Vector2(catPos, catPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width));
 
             foreach (Enemy e in enemies)
             {
@@ -113,34 +88,31 @@ namespace LisaMTowerDefence
             }
         }
 
+   
+
         public void Update(GameTime gameTime)
         {
+            WaveHandler(gameTime);
+
+            //inputs
             mouseState = Mouse.GetState();
             keyState = Keyboard.GetState();
             mousePos.X = mouseState.X;
             mousePos.Y = mouseState.Y;
 
-            System.Diagnostics.Debug.WriteLine(EconomyTracker.GetCoins());
-
-
-
-
-            //if 1,2,3,4(corresponding to towertypes) is pressed, spawn new tower ( MAKE METHOD)
-
             if (chosenTower == null)
             {
                 //FIX COST OF TOWERS
-
-
-                //PROBLEM WITH MIDPOS REGISTRING WHEN FIRST CREATING, UPDATE IN TOWER SHOOTING
-                if (keyState.IsKeyDown(Keys.E))// && chosenTower.Cost < EconomyTracker.GetCoins())
+                //PICKING TOWERS
+                if (keyState.IsKeyDown(Keys.D1))
                 {
-
-                    chosenTower = new Tower(catTex, mousePos, new Rectangle((int)mousePos.X, (int)mousePos.Y, catTex.Width, catTex.Height), 1);
+                    chosenTower = new Tower(Assets.granny1, mousePos, new Rectangle((int)mousePos.X, (int)mousePos.Y, Assets.granny1.Width, Assets.granny1.Height), 1);
+                    CheckAffordTower();
                 }
-                else if (keyState.IsKeyDown(Keys.F))
+                else if (keyState.IsKeyDown(Keys.D2))
                 {
-                    chosenTower = new Tower(catTex, mousePos, new Rectangle((int)mousePos.X, (int)mousePos.Y, catTex.Width, catTex.Height), 2);
+                    chosenTower = new Tower(Assets.granny1, mousePos, new Rectangle((int)mousePos.X, (int)mousePos.Y, Assets.granny1.Width, Assets.granny1.Height), 2);
+                    CheckAffordTower();
                 }
 
                 //POSSIBILITY FOR DESIGN YOUR OWN TOWER
@@ -151,32 +123,18 @@ namespace LisaMTowerDefence
                 chosenTower.pos = mousePos;
                 chosenTower.hitbox.X = (int)mousePos.X;
                 chosenTower.hitbox.Y = (int)mousePos.Y;
+
+                PlaceTowerMode();
             }
 
 
-            //METHOD?
-            if (mouseState.LeftButton == ButtonState.Pressed && chosenTower != null)
-            {
-                if (CanPlace(chosenTower) == true)
-                {
-                    Vector2 currentMousePos = mousePos;
-                    //MIGHT BE A PROBLEM WITH LIST NULLING?
-                    //placedObjects.Add(new Tower(catTex, mousePos, new Rectangle((int)mousePos.X, (int)mousePos.Y, catTex.Width, catTex.Height)));
-                    chosenTower.GetTowerPos = mousePos;
-                    placedObjects.Add(chosenTower);
-                    changedRender = true;
-                    //DrawOnRenderTarget();
-                    chosenTower = null;
-
-                }
-            }
-
-
+            if (particleEmitter != null)
+            particleEmitter.Update(gameTime);
 
             for (int i = 0; i < enemies.Count; i++)
             {
                 enemies[i].pos = path.GetPos(enemies[i].positionOnPath);
-                enemies[i].Update();
+                enemies[i].Update(gameTime);
                 //System.Diagnostics.Debug.WriteLine(enemies[i].Health);
                 if (enemies[i].Health <= 0)
                 {
@@ -218,36 +176,30 @@ namespace LisaMTowerDefence
 
             spriteBatch.Begin();
             graphics.Clear(Color.White);
+            //ta bort efter map är made
+            spriteBatch.Draw(Assets.level1Background, Vector2.Zero, Color.White);
+
             path.Draw(spriteBatch);
-            //path.DrawPoints(spriteBatch);
 
             spriteBatch.Draw(renderTest, Vector2.Zero, Color.White);
 
+            if (particleEmitter != null)
+                particleEmitter.Draw(spriteBatch);
+
             if (chosenTower != null)
-            { chosenTower.Draw(spriteBatch); }
-
-
-            //DRAW BULLETS NOT WORKING
+                chosenTower.Draw(spriteBatch);
 
             for (int i = 0; i < bullets.Count; i++)
             {
                 bullets[i].Draw(spriteBatch);
             }
 
-            //foreach(Bullet b in bullets)
-            //{
-            //    b.Draw(spriteBatch);
-            //}
-
             foreach (Enemy e in enemies)
             {
                 if (enemyStartPos < path.endT)
                 {
-                    //BEHÖVER DENNA VARA SÅ GODDAMN LONG?
-                    //ENDA SOM ANVÄNDS ÄR ORIGIN
                     e.Draw(spriteBatch);
-                    //enemy.Draw(spriteBatch);
-                    //spriteBatch.Draw(tinyCatTex, path.GetPos(catPos), new Rectangle(0, 0, tinyCatTex.Width, tinyCatTex.Height), Color.White, 0f, new Vector2(tinyCatTex.Width / 2, tinyCatTex.Height / 2), 1f, SpriteEffects.None, 0f);
+                    e.DrawHealthBar(spriteBatch);
                 }
             }
             spriteBatch.End();
@@ -274,17 +226,31 @@ namespace LisaMTowerDefence
             graphicsDevice.SetRenderTarget(null);
         }
 
+        private void MakePath()
+        {
+            //default level
+            path.AddPoint(Vector2.Zero);
+            path.SetPos(0, Vector2.Zero);
+            path.AddPoint(new Vector2(160, 200));
+            path.AddPoint(new Vector2(500, 150));
+            path.AddPoint(new Vector2(550, 200));
+            path.AddPoint(new Vector2(750, 600));
+            path.AddPoint(new Vector2(650, 700));
+            path.AddPoint(new Vector2(250, 700));
+            path.AddPoint(new Vector2(250, 550));
+            path.AddPoint(new Vector2(300, 400));
+            path.AddPoint(new Vector2(700, 300));
+            path.AddPoint(new Vector2(windowWidth, windowHeight));
+        }
+
         public bool CanPlace(GameObject g)
         {
-            //BUG: CLICKA UTANFÖR WINDOW = CRASH, SOVLED, TOO LONG STATEMENT?
             if (mousePos.X > 0 && mousePos.X + g.tex.Width < windowWidth && mousePos.Y > 0 && mousePos.Y + g.tex.Height < windowHeight)
             {
                 Color[] pixels = new Color[g.tex.Width * g.tex.Height];
                 Color[] pixels2 = new Color[g.tex.Height * g.tex.Width];
                 g.tex.GetData<Color>(pixels2);
                 renderTest.GetData(0, g.hitbox, pixels, 0, pixels.Length);
-                //System.Diagnostics.Debug.WriteLine("pixels" + pixels[0].A.ToString());
-                //System.Diagnostics.Debug.WriteLine("pixels2" + pixels2[0].A.ToString());
                 for (int i = 0; i < pixels.Length; i++)
                 {
                     if (pixels[i].A > 0.0f && pixels2[i].A > 0.0f)
@@ -302,27 +268,19 @@ namespace LisaMTowerDefence
 
         private bool CheckDistance(Tower t)
         {
-            //Check through list of enemies
-            //else-statement? none
-
             foreach (Enemy e in enemies)
             {
-                //PICK DISTANCE HERE
                 if (GetDistance(t.GetTowerPos, e.pos) < t.Reach)
                 {
                     t.ClosestEnemyPos = e.pos;
-                    //System.Diagnostics.Debug.WriteLine(enemy.pos);
                     return true;
-
                 }
                 else
                 {
                     continue;
                 }
             }
-
             return false;
-
         }
 
         private float GetDistance(Vector2 one, Vector2 two)
@@ -345,7 +303,65 @@ namespace LisaMTowerDefence
             }
         }
 
+        private void WaveHandler(GameTime gameTime)
+        {
+            switch (waveNumber)
+            {
+                case 0:
+                    if (enemies.Count <= 0)
+                    {
+                        waveTimer += gameTime.ElapsedGameTime.Milliseconds;
+                        if (waveTimer >= 10000)
+                        {
+                            waveNumber = prevWaveNumber + 1;
+                        }
+                    }
+                    break;
+                case 1:
+                    //method för spawning enemies
+                    enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width), 0));
+                    enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width), 1));
+                    prevWaveNumber = waveNumber;
+                    waveNumber = 0;
+                    break;
 
+                case 2:
+                    enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width), 0));
+                    enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width), 1));
+                    prevWaveNumber = waveNumber;
+                    waveNumber = 0;
+                    break;
+
+
+                    //SET WINCASE
+            }
+        }
+
+        private void CheckAffordTower()
+        {
+            if (chosenTower.Cost > EconomyTracker.GetCoins())
+            {
+                chosenTower = null;
+            }
+        }
+
+        private void PlaceTowerMode()
+        {
+            chosenTower.tint = Color.Red;
+            if (CanPlace(chosenTower) == true)
+            {
+                chosenTower.tint = Color.White;
+                if (mouseState.LeftButton == ButtonState.Pressed)
+                {
+                    particleEmitter = new ParticleEmitter(mousePos, 5000f, 10);
+                    chosenTower.GetTowerPos = mousePos;
+                    placedObjects.Add(chosenTower);
+                    EconomyTracker.AlterCoins(-chosenTower.Cost);
+                    changedRender = true;
+                    chosenTower = null;
+                }
+            }
+        }
 
     }
 }

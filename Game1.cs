@@ -3,8 +3,8 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
-using Spline;
 using System.Linq;
+using WindowsForm;
 
 namespace LisaMTowerDefence
 {
@@ -14,11 +14,18 @@ namespace LisaMTowerDefence
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
 
+        Form1 form;
+
+//MAKE PRETTIER
         //windowsize
         private int windowWidth = 1200;
         private int windowHeight = 900;
 
         GameManager gameManager;
+
+        //states
+        private enum GameState { menu, playing, ending };
+        private GameState currentState;
 
         public Game1()
         {
@@ -30,7 +37,7 @@ namespace LisaMTowerDefence
         protected override void Initialize()
         {
             gameManager = new GameManager();
-
+            currentState = GameState.menu;
             base.Initialize();
         }
 
@@ -41,7 +48,15 @@ namespace LisaMTowerDefence
             graphics.ApplyChanges();
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
+            form = new Form1();
+            form.Show();
+
             gameManager.LoadGame(GraphicsDevice, Content, spriteBatch);
+
+          
+
+            //Window.IsBorderless = true;
+            //ADD AFTER EXIT BUTTON
         }
         
         protected override void Update(GameTime gameTime)
@@ -49,14 +64,42 @@ namespace LisaMTowerDefence
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            gameManager.Update(gameTime);
+            
+
+            switch(currentState)
+            {
+                case GameState.menu:
+                if(form.gameStarted)
+                    {
+                        currentState = GameState.playing;
+                    }
+                    break;
+
+                case GameState.playing:
+                    gameManager.Update(gameTime);
+                    break;
+            }
+
 
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            gameManager.Draw(spriteBatch, GraphicsDevice);
+            switch(currentState)
+            {
+                case GameState.menu:
+
+                    break;
+
+                case GameState.playing:
+
+                gameManager.Draw(spriteBatch, GraphicsDevice);
+                    break;
+
+            }
+
+
             base.Draw(gameTime);
         }
     }

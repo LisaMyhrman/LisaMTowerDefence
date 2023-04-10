@@ -16,6 +16,9 @@
     <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.1.303" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\WindowsForm\WindowsForm.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="Spline">
       <HintPath>Spline.dll</HintPath>
     </Reference>
