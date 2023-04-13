@@ -10,21 +10,18 @@ namespace LisaMTowerDefence
 {
     public class Game1 : Game
     {
-        //standard-instances
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
 
         Form1 form;
+        PausForm pausForm;
 
-//MAKE PRETTIER
-        //windowsize
-        private int windowWidth = 1200;
-        private int windowHeight = 900;
+        public static int windowWidth { get; private set; }
+        public static int windowHeight { get; private set; }
 
         GameManager gameManager;
 
-        //states
-        private enum GameState { menu, playing, ending };
+        private enum GameState { menu, playing, pausMenu };
         private GameState currentState;
 
         public Game1()
@@ -38,6 +35,8 @@ namespace LisaMTowerDefence
         {
             gameManager = new GameManager();
             currentState = GameState.menu;
+            windowWidth = 1200;
+            windowHeight = 900;
             base.Initialize();
         }
 
@@ -50,33 +49,51 @@ namespace LisaMTowerDefence
 
             form = new Form1();
             form.Show();
+            pausForm = new PausForm();
 
-            gameManager.LoadGame(GraphicsDevice, Content, spriteBatch);
+            gameManager.LoadGame(GraphicsDevice, Content);
 
-          
-
-            //Window.IsBorderless = true;
-            //ADD AFTER EXIT BUTTON
+            Window.IsBorderless = true;
         }
         
         protected override void Update(GameTime gameTime)
         {
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape) || Form1.closeGame == true)
                 Exit();
-
-            
 
             switch(currentState)
             {
                 case GameState.menu:
-                if(form.gameStarted)
+                    if(form.gameStarted && gameManager.lost != true)
                     {
                         currentState = GameState.playing;
                     }
                     break;
 
                 case GameState.playing:
+                    
+                    if(gameManager.lost == true)
+                    {
+                        currentState = GameState.menu;
+                    }
+                    else if(gameManager.paused)
+                    {
+                        currentState = GameState.pausMenu;
+                        pausForm = new PausForm();
+                        pausForm.Show();
+                    }
+
                     gameManager.Update(gameTime);
+
+                    break;
+
+                case GameState.pausMenu:
+
+                    if (pausForm.closedPausForm)
+                    {
+                        gameManager.paused = false;
+                        currentState = GameState.playing;
+                    }
                     break;
             }
 
@@ -88,18 +105,16 @@ namespace LisaMTowerDefence
         {
             switch(currentState)
             {
-                case GameState.menu:
-
-                    break;
+                //case GameState.menu:
+                //    break;
 
                 case GameState.playing:
-
-                gameManager.Draw(spriteBatch, GraphicsDevice);
+                    gameManager.Draw(spriteBatch, GraphicsDevice);
                     break;
 
+                default:
+                    break;
             }
-
-
             base.Draw(gameTime);
         }
     }

@@ -11,17 +11,17 @@ namespace LisaMTowerDefence
 {
     internal static class EconomyTracker
     {
-        static int currentCoins = 2;
+        public static int currentCoins = 2;
 
         public static void AlterCoins(int value)
         {
             currentCoins += value;
         }
 
-        public static int GetCoins()
-        {
-            return currentCoins;
-        }
+        //public static int GetCoins()
+        //{
+        //    return currentCoins;
+        //}
 
     }
 }

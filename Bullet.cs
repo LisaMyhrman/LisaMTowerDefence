@@ -17,8 +17,9 @@ namespace LisaMTowerDefence
         int bulletType;
         float rotation;
         float rotationSpeed;
+        public bool slowing { get; private set; }
 
-        public Bullet(Texture2D texture, Vector2 position, Rectangle hitbox, Vector2 direction, int bulletType) : base (texture,position,hitbox)
+        public Bullet(Texture2D texture, Vector2 position, Vector2 direction, int bulletType) : base(texture, position)
         {
             this.direction = direction;
             this.bulletType = bulletType;
@@ -26,28 +27,37 @@ namespace LisaMTowerDefence
 
             if(bulletType == 1)
             {
-                speed = 1;
+                speed = 2;
                 damage = 1;
                 rotationSpeed = 0.1f;
+                slowing = false;
+                tex = Assets.yarn1;
             }
             else if(bulletType == 2)
             {
                 speed = 2;
                 damage = 1;
                 rotationSpeed = 0.5f;
+                slowing = true;
+                tex = Assets.yarn2;
             }
-            
+            else if(bulletType == 3)
+            {
+                speed = 3;
+                damage = 1;
+                rotationSpeed = 0.6f;
+                slowing = false;
+                tex = Assets.yarn3;
+            }
         }
 
         public void Update()
         {
-            //LOGISTICS REGARDING DIRECTION AND MOVEMENT, working prehaps? hmmm good enough
-
+            //movement of bullet
             pos.X += direction.X * speed;
             pos.Y += direction.Y * speed;
             hitbox.X = (int)pos.X;
             hitbox.Y = (int)pos.Y;
-
             rotation += rotationSpeed;
         }
         

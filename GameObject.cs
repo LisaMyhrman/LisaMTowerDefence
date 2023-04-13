@@ -17,11 +17,11 @@ namespace LisaMTowerDefence
         public Texture2D tex;
         public Rectangle hitbox;
 
-        public GameObject(Texture2D texture, Vector2 position, Rectangle hitbox)
+        public GameObject(Texture2D standardTex, Vector2 position)
         {
-            this.tex = texture;
+            this.tex = standardTex;
             this.pos = position;
-            this.hitbox = hitbox;
+            hitbox = new Rectangle((int)pos.X, (int)pos.Y, tex.Width, tex.Height);
         }
 
         public virtual void Draw(SpriteBatch sb)

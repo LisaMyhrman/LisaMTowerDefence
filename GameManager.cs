@@ -7,85 +7,114 @@ using Spline;
 using Microsoft.Xna.Framework.Content;
 using WindowsForm;
 using System.Drawing.Text;
+using Microsoft.Xna.Framework.Media;
+using Microsoft.Xna.Framework.Audio;
 
 namespace LisaMTowerDefence
 {
     internal class GameManager
     {
-       //FIX WINDOWSIZE FROM GAME1?
-        private int windowWidth = 1200;
-        private int windowHeight = 900;
-
+        int windowWidth;
+        int windowHeight;
 
         //spline
-        private SimplePath path;
+        SimplePath path;
 
+        //public Random random = new Random();
+
+        public static int playerHealth { get; private set; }
 
         //textures
-        private Texture2D catTex;
-        private float enemyStartPos;
-        private Texture2D tinyCatTex;
+        //Texture2D catTex;
+        //Texture2D tinyCatTex;
 
         //rendertarget
-        private Texture2D transTex;
-        private RenderTarget2D renderTest;
+        RenderTarget2D renderTest;
 
         //object following mouse(currently selected object)
-        private Vector2 mousePos;
-        private MouseState mouseState;
-        private KeyboardState keyState;
+        Vector2 mousePos;
+        MouseState mouseState;
+        KeyboardState keyState;
 
         //enemies
-        private Enemy enemy;
-        private List<Enemy> enemies = new List<Enemy>();
+        //private Enemy enemy;
+        float enemyStartPos;
+        List<Enemy> enemies = new List<Enemy>();
+        float enemyOffSet;
 
         //towers
-        private bool changedRender = false;
-        private Tower test;
-        private Tower chosenTower = null;
+        //private bool changedRender = false;
+        //private Tower test;
+        Tower chosenTower = null;
 
         //ska listan innehålla almänna towers, beroende på olika typer osvosv?
         List<Tower> placedObjects = new List<Tower>();
 
         //shootingtests
-        private List<Bullet> bullets = new List<Bullet>();
+        List<Bullet> bullets = new List<Bullet>();
 
 
         //partikeltest
-        private ParticleEmitter particleEmitter;
+        //private ParticleEmitter particleEmitter;
+        List<ParticleEmitter> particleEmitters = new List<ParticleEmitter>();
 
         //waves
-        private int waveNumber;
-        private int prevWaveNumber;
-        private float waveTimer;
+        int waveNumber;
+        int prevWaveNumber;
+        public static float waveTimer { get; private set; }
+        public static float waveCoolDown { get; private set; }
+        List<Enemy> waves = new List<Enemy>();
+
+        //overlay
+        Overlay overlay;
+
+        //win/lose
+        WinForm winForm;
+        LoseForm loseForm;
+        PausForm pausForm;
+        public bool lost { get; private set; }
+        public bool paused { get; set; }
+        //public bool isMusicOn;
+
         
     
 
-
-
-        public void LoadGame(GraphicsDevice graphics, ContentManager Content, SpriteBatch spriteBatch)
+        public void LoadGame(GraphicsDevice graphics, ContentManager Content)
         {
+            windowWidth = Game1.windowWidth;
+            windowHeight = Game1.windowHeight;
 
+            //random = new Random();
+
+            //path
             path = new SimplePath(graphics);
             path.Clean();
 
+
+            playerHealth = 1;
+            waveCoolDown = 5000;
+
             waveNumber = 1;
-            Assets.LoadTextures(Content);
 
-            //behövs inte senare
-            tinyCatTex = Assets.tinyCatTex;
-            catTex = Assets.catTex;
+            Assets.Load(Content);
 
+            winForm = new WinForm();
+            loseForm = new LoseForm();
+            pausForm = new PausForm();
+            paused = false;
+
+            //music
+            MediaPlayer.Play(Assets.song);
+            MediaPlayer.IsRepeating = true;
+            MediaPlayer.Volume = 0.4f;
+            //isMusicOn = true;
+
+            overlay = new Overlay();
             renderTest = new RenderTarget2D(graphics, windowWidth, windowHeight);
             mousePos = new Vector2(mouseState.X, mouseState.Y);
-            DrawOnRenderTarget(graphics, spriteBatch);
             MakePath();
             enemyStartPos = path.beginT;
-
-            foreach (Enemy e in enemies)
-            {
-                e.positionOnPath = path.beginT;
-            }
+            enemyOffSet = 200f;
         }
 
    
@@ -100,47 +129,53 @@ namespace LisaMTowerDefence
             mousePos.X = mouseState.X;
             mousePos.Y = mouseState.Y;
 
-            if (chosenTower == null)
+            //paus
+            if (keyState.IsKeyDown(Keys.P))
             {
-                //FIX COST OF TOWERS
-                //PICKING TOWERS
-                if (keyState.IsKeyDown(Keys.D1))
-                {
-                    chosenTower = new Tower(Assets.granny1, mousePos, new Rectangle((int)mousePos.X, (int)mousePos.Y, Assets.granny1.Width, Assets.granny1.Height), 1);
-                    CheckAffordTower();
-                }
-                else if (keyState.IsKeyDown(Keys.D2))
-                {
-                    chosenTower = new Tower(Assets.granny1, mousePos, new Rectangle((int)mousePos.X, (int)mousePos.Y, Assets.granny1.Width, Assets.granny1.Height), 2);
-                    CheckAffordTower();
-                }
-
-                //POSSIBILITY FOR DESIGN YOUR OWN TOWER
-
-            }
-            else
-            {
-                chosenTower.pos = mousePos;
-                chosenTower.hitbox.X = (int)mousePos.X;
-                chosenTower.hitbox.Y = (int)mousePos.Y;
-
-                PlaceTowerMode();
+                paused = true;
             }
 
+           //if(!isMusicOn)
+           //{
+           //     MediaPlayer.Pause();
+           //}
+           //else if(isMusicOn)
+           //{
+           //     MediaPlayer.Resume();
+           //}
 
-            if (particleEmitter != null)
-            particleEmitter.Update(gameTime);
+            PickTower();
+
+            if(playerHealth <= 0)
+            {
+                loseForm.Show();
+                lost = true;
+            }
+
+            //update all objects
+
+            for(int i = 0; i < particleEmitters.Count; i++)
+            {
+                particleEmitters[i].Update(gameTime);
+                if (particleEmitters[i].IsActive == false)
+                {
+                    particleEmitters.Remove(particleEmitters[i]);
+                }
+            }
 
             for (int i = 0; i < enemies.Count; i++)
             {
                 enemies[i].pos = path.GetPos(enemies[i].positionOnPath);
                 enemies[i].Update(gameTime);
-                //System.Diagnostics.Debug.WriteLine(enemies[i].Health);
+                System.Diagnostics.Debug.WriteLine(i + " " + enemies[i].GetMidPos);
                 if (enemies[i].Health <= 0)
                 {
                     EconomyTracker.AlterCoins(enemies[i].Value);
+                    particleEmitters.Add(new ParticleEmitter(enemies[i].GetMidPos, 5000f, 30));
                     enemies.RemoveAt(i);
+                    break;
                 }
+                CheckEnemyInBounds(enemies[i]);
             }
 
             foreach (Tower t in placedObjects)
@@ -148,81 +183,80 @@ namespace LisaMTowerDefence
                 t.Update(gameTime);
                 if (CheckDistance(t))
                 {
-                    //System.Diagnostics.Debug.WriteLine("in distance");
-                    if (t.isShooting)
-                    {
-                        bullets.Add(t.typeOfBullet);
-                    }
+                    //t.Animator();
+                    bullets.Add(t.Shooting());
                 }
-
             }
 
             for (int i = 0; i < bullets.Count; i++)
             {
+                if(bullets[i] != null)
+                {
                 bullets[i].Update();
                 BulletCollision(bullets[i]);
+                }
             }
+
+            overlay.Update();
         }
 
         public void Draw(SpriteBatch spriteBatch, GraphicsDevice graphics)
         {
-            
+            //rendertargetmethod first
+            DrawOnRenderTarget(graphics, spriteBatch);
 
-            if (changedRender == true)
-            {
-                DrawOnRenderTarget(graphics, spriteBatch);
-                changedRender = false;
-            }
-
+            //rendertarget changed, new spritebatch begins
             spriteBatch.Begin();
             graphics.Clear(Color.White);
-            //ta bort efter map är made
             spriteBatch.Draw(Assets.level1Background, Vector2.Zero, Color.White);
-
-            path.Draw(spriteBatch);
-
             spriteBatch.Draw(renderTest, Vector2.Zero, Color.White);
 
-            if (particleEmitter != null)
-                particleEmitter.Draw(spriteBatch);
+            //drawing all objects
+
+            for (int i = 0; i < particleEmitters.Count; i++)
+            {
+                particleEmitters[i].Draw(spriteBatch);
+            }
 
             if (chosenTower != null)
                 chosenTower.Draw(spriteBatch);
 
             for (int i = 0; i < bullets.Count; i++)
             {
+                if (bullets[i]!=null)
                 bullets[i].Draw(spriteBatch);
             }
 
-            foreach (Enemy e in enemies)
+            //foreach (Enemy e in enemies)
+            //{
+            //    if (enemyStartPos < path.endT)
+            //    {
+            //        e.Draw(spriteBatch);
+            //        e.DrawHealthBar(spriteBatch);
+            //    }
+            //}
+            for (int i = 0; i < enemies.Count; i++)
             {
-                if (enemyStartPos < path.endT)
-                {
-                    e.Draw(spriteBatch);
-                    e.DrawHealthBar(spriteBatch);
-                }
+                enemies[i].Draw(spriteBatch);
+                enemies[i].DrawHealthBar(spriteBatch);
             }
+
+            overlay.Draw(spriteBatch);
             spriteBatch.End();
         }
 
         private void DrawOnRenderTarget(GraphicsDevice graphicsDevice, SpriteBatch spriteBatch)
         {
+            //drawing on the rendertarget for placed towers
             graphicsDevice.SetRenderTarget(renderTest);
-
             graphicsDevice.Clear(Color.Transparent);
             spriteBatch.Begin();
-
             foreach (var obj in placedObjects)
             {
                 obj.Draw(spriteBatch);
             }
-
-            //GraphicsDevice.Clear(Color.Transparent);
-
-            //spriteBatch.Draw(transTex, Vector2.Zero, Color.White);
-            //spriteBatch.Draw(catTex, new Vector2(100,100), Color.White);
+            spriteBatch.Draw(Assets.renderTargetBackground, Vector2.Zero, Color.White);
             spriteBatch.End();
-
             graphicsDevice.SetRenderTarget(null);
         }
 
@@ -241,6 +275,39 @@ namespace LisaMTowerDefence
             path.AddPoint(new Vector2(300, 400));
             path.AddPoint(new Vector2(700, 300));
             path.AddPoint(new Vector2(windowWidth, windowHeight));
+        }
+
+        private void PickTower()
+        {
+            if (chosenTower == null)
+            {
+                if (keyState.IsKeyDown(Keys.D1))
+                {
+                    chosenTower = new Tower(Assets.granny1, mousePos, 1);
+                    CheckAffordTower();
+                }
+                else if (keyState.IsKeyDown(Keys.D2))
+                {
+                    chosenTower = new Tower(Assets.granny3, mousePos, 2);
+                    CheckAffordTower();
+                }
+                else if (keyState.IsKeyDown(Keys.D3))
+                {
+                    chosenTower = new Tower(Assets.granny2, mousePos, 3);
+                    CheckAffordTower();
+                }
+            }
+            else
+            {
+                chosenTower.pos = mousePos;
+                chosenTower.hitbox.X = (int)mousePos.X;
+                chosenTower.hitbox.Y = (int)mousePos.Y;
+                PlaceTowerMode();
+                if (keyState.IsKeyDown(Keys.E))
+                {
+                    chosenTower = null;
+                }
+            }
         }
 
         public bool CanPlace(GameObject g)
@@ -268,11 +335,12 @@ namespace LisaMTowerDefence
 
         private bool CheckDistance(Tower t)
         {
+            //checks if an enemy is in reach for the tower
             foreach (Enemy e in enemies)
             {
-                if (GetDistance(t.GetTowerPos, e.pos) < t.Reach)
+                if (GetDistance(t.GetTowerPos, e.GetMidPos) < t.Reach)
                 {
-                    t.ClosestEnemyPos = e.pos;
+                    t.ClosestEnemyPos = e.GetMidPos;
                     return true;
                 }
                 else
@@ -285,9 +353,20 @@ namespace LisaMTowerDefence
 
         private float GetDistance(Vector2 one, Vector2 two)
         {
+            //used in checkdistance
             float X = one.X - two.X;
             float Y = one.Y - two.Y;
             return (float)Math.Sqrt((X * X) + (Y * Y));
+        }
+
+        private void CheckEnemyInBounds(Enemy e)
+        {
+            //checks if an enemy has left the window, takes off health(fish) from player
+            if (e.GetMidPos.X >= windowWidth && e.GetMidPos.Y >= windowHeight)
+            {
+                playerHealth--;
+                enemies.Remove(e);
+            }
         }
 
         private void BulletCollision(Bullet b)
@@ -296,50 +375,71 @@ namespace LisaMTowerDefence
             {
                 if (b.IsColliding(e.hitbox))
                 {
-                    System.Diagnostics.Debug.WriteLine("HIT");
-                    e.HealthMaster(b.Damage);
+                    e.HealthPowerMaster(b.Damage, b.slowing);
                     bullets.Remove(b);
                 }
             }
         }
 
-        private void WaveHandler(GameTime gameTime)
+        private async void WaveHandler(GameTime gameTime)
         {
+            //switch for waves, changes to case 0 in order to not spawn multiple waves more than once.
             switch (waveNumber)
             {
                 case 0:
                     if (enemies.Count <= 0)
                     {
-                        waveTimer += gameTime.ElapsedGameTime.Milliseconds;
-                        if (waveTimer >= 10000)
+                        if(prevWaveNumber == 4)
                         {
-                            waveNumber = prevWaveNumber + 1;
+                            winForm.Show();
+                        }
+                        else
+                        {
+                            waveTimer += gameTime.ElapsedGameTime.Milliseconds;
+                            if (waveTimer >= waveCoolDown)
+                            {
+                                waveNumber = prevWaveNumber + 1;
+                            }
                         }
                     }
                     break;
                 case 1:
-                    //method för spawning enemies
-                    enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width), 0));
-                    enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width), 1));
-                    prevWaveNumber = waveNumber;
-                    waveNumber = 0;
+                    enemies.Add(new Enemy(Assets.tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), 2));
+                    enemies.Add(new Enemy(Assets.tinyCatTex, new Vector2(enemyStartPos - enemyOffSet, enemyStartPos), 2));
+                    AfterWave();
                     break;
 
                 case 2:
-                    enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width), 0));
-                    enemies.Add(new Enemy(tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), new Rectangle(0, 0, tinyCatTex.Height, tinyCatTex.Width), 1));
-                    prevWaveNumber = waveNumber;
-                    waveNumber = 0;
+                    enemies.Add(new Enemy(Assets.tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), 2));
+                    enemies.Add(new Enemy(Assets.tinyCatTex, new Vector2(enemyStartPos - enemyOffSet, enemyStartPos), 1));
+                    AfterWave();
                     break;
-
-
-                    //SET WINCASE
+                case 3:
+                    enemies.Add(new Enemy(Assets.tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), 2));
+                    enemies.Add(new Enemy(Assets.tinyCatTex, new Vector2(enemyStartPos - enemyOffSet, enemyStartPos), 1));
+                    enemies.Add(new Enemy(Assets.tinyCatTex, new Vector2(enemyStartPos - enemyOffSet*2, enemyStartPos), 2));
+                    AfterWave();
+                    break;
+                case 4:
+                    enemies.Add(new Enemy(Assets.tinyCatTex, new Vector2(enemyStartPos, enemyStartPos), 2));
+                    enemies.Add(new Enemy(Assets.tinyCatTex, new Vector2(enemyStartPos - enemyOffSet, enemyStartPos), 2));
+                    enemies.Add(new Enemy(Assets.tinyCatTex, new Vector2(enemyStartPos - enemyOffSet*2, enemyStartPos), 2));
+                    enemies.Add(new Enemy(Assets.tinyCatTex, new Vector2(enemyStartPos - enemyOffSet*3, enemyStartPos), 2));
+                    AfterWave();
+                    break;
             }
+        }
+
+        private void AfterWave()
+        {
+            prevWaveNumber = waveNumber;
+            waveNumber = 0;
+            waveTimer = 0;
         }
 
         private void CheckAffordTower()
         {
-            if (chosenTower.Cost > EconomyTracker.GetCoins())
+            if (chosenTower.Cost > EconomyTracker.currentCoins)
             {
                 chosenTower = null;
             }
@@ -347,17 +447,18 @@ namespace LisaMTowerDefence
 
         private void PlaceTowerMode()
         {
+            //if tower cannot be placed, it is red
             chosenTower.tint = Color.Red;
             if (CanPlace(chosenTower) == true)
             {
+            //if placeable, turns white
                 chosenTower.tint = Color.White;
                 if (mouseState.LeftButton == ButtonState.Pressed)
                 {
-                    particleEmitter = new ParticleEmitter(mousePos, 5000f, 10);
+            //player purchases tower and it gets placed
                     chosenTower.GetTowerPos = mousePos;
                     placedObjects.Add(chosenTower);
                     EconomyTracker.AlterCoins(-chosenTower.Cost);
-                    changedRender = true;
                     chosenTower = null;
                 }
             }

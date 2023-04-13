@@ -20,24 +20,33 @@ namespace LisaMTowerDefence
         private int enemyType;
         private float animateTimer;
         private float animationInterval;
+        private Vector2 midPos;
+        GameManager manager;
 
-        public Enemy(Texture2D texture, Vector2 position, Rectangle hitbox, int enemyType) : base(texture, position, hitbox)
+
+        public Enemy(Texture2D texture, Vector2 position, int enemyType) : base(texture, position)
         {
-            posOnPath = 0;
+            manager = new GameManager();
+            //posOnPath = 0;
+            posOnPath = position.X;
             animateTimer = 0;
             animationInterval = 1000;
+            this.enemyType = enemyType;
 
-            if(enemyType == 0)
+
+            if (enemyType == 1)
             {
                 speed = 1.0f;
                 health = 2;
                 value = 2;
+                tex = Assets.tinyCatTex;
             }
-            else if(enemyType == 1)
+            else if (enemyType == 2)
             {
                 speed = 2.0f;
                 health = 3;
                 value = 3;
+                tex = Assets.cat2;
             }
             startHealth = health;
 
@@ -51,14 +60,15 @@ namespace LisaMTowerDefence
             posOnPath = posOnPath + speed;
             hitbox.X = (int)pos.X;
             hitbox.Y = (int)pos.Y;
-            //System.Diagnostics.Debug.WriteLine(animateTimer);
+            midPos.X = pos.X + tex.Width / 2;
+            midPos.Y = pos.Y + tex.Height / 2;
             Animate();
         }
 
         public void DrawHealthBar(SpriteBatch spriteBatch)
         {
-//bars need to be bigger, draw new/scale them
-            spriteBatch.Draw(Assets.confusion, new Rectangle((int)pos.X, (int)pos.Y - Assets.confusion.Height, (Assets.confusion.Width / startHealth) * health, Assets.confusion.Height), new Rectangle(0, 0, (Assets.confusion.Width / startHealth) * health, Assets.confusion.Height), Color.White);
+            //bars need to be bigger, draw new/scale them
+            spriteBatch.Draw(Assets.confusion, new Rectangle((int)pos.X, (int)pos.Y - Assets.confusion.Height * 2, (Assets.confusion.Width / startHealth) * health * 2, Assets.confusion.Height * 2), new Rectangle(0, 0, (Assets.confusion.Width / startHealth) * health, Assets.confusion.Height), Color.White);
         }
 
         public float positionOnPath
@@ -67,9 +77,14 @@ namespace LisaMTowerDefence
             set { posOnPath = value; }
         }
 
-        public void HealthMaster(int damage)
+        //slowing effect works, more powers here?
+        public void HealthPowerMaster(int damage, bool slowing)
         {
             health = health - damage;
+            if (slowing)
+            {
+                speed = speed / 2;
+            }
         }
 
         public int Health
@@ -84,21 +99,33 @@ namespace LisaMTowerDefence
 
         public void Animate()
         {
-            if(animateTimer >= animationInterval)
+            //fix animation for different sprites
+            if (animateTimer >= animationInterval)
             {
-                tex = Assets.catTex2;
+                if (enemyType == 1)
+                { tex = Assets.catTex2; }
+                else if(enemyType == 2)
+                { tex = Assets.cat2; }
+
             }
             else
             {
-                tex = Assets.tinyCatTex;
+                //tex = Assets.tinyCatTex;
+                if (enemyType == 1)
+                { tex = Assets.tinyCatTex; }
+                else if(enemyType == 2)
+                { tex = Assets.cat2_2; }
             }
 
-            if(animateTimer >= animationInterval*2)
+            if (animateTimer >= animationInterval * 2)
             {
                 animateTimer = 0;
             }
         }
 
-        //WORKS WITHOUT SPECIFIC DRAW, ONLY NEEDS ORIGIN CHANGED TO MOVE CORRECTLY
+        public Vector2 GetMidPos
+        {
+            get { return midPos; }
+        }
     }
 }

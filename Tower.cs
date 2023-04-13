@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-
+using SharpDX.DirectWrite;
 
 namespace LisaMTowerDefence
 {
@@ -19,23 +19,22 @@ namespace LisaMTowerDefence
 
         private float timer;
         private bool shooting;
-        private Bullet bulletType;
         private Vector2 midPos;
         private Vector2 closestEnemyPos;
         private int cost;
         private int reloadShotMiliSec;
         private int reach;
         private int towerType;
-
+        private Texture2D idleTex;
+        private Texture2D shootTex;
+ 
         public Color tint { get; set; }
 
 
-        public Tower(Texture2D texture, Vector2 position, Rectangle hitbox, int towerType) : base(texture, position, hitbox)
+        public Tower(Texture2D texture, Vector2 position, int towerType) : base(texture, position)
         {
             timer = 0;
             shooting = false;
-            midPos = new Vector2(position.X + texture.Width / 2, position.Y + texture.Height / 2);
-            closestEnemyPos = new Vector2(0, 0);
             this.towerType = towerType;
             tint = Color.White;
 
@@ -45,21 +44,35 @@ namespace LisaMTowerDefence
                 cost = 1;
                 reach = 300;
                 reloadShotMiliSec = 2000;
+                idleTex = Assets.granny1;
+                shootTex = Assets.granny1_2;
             }
             else if(towerType == 2)
             {
                 cost = 3;
                 reach = 600;
                 reloadShotMiliSec = 2000;
+                idleTex = Assets.granny3;
+                shootTex = Assets.granny3_2;
+            }
+            else if(towerType == 3)
+            {
+                cost = 4;
+                reach = 500;
+                reloadShotMiliSec = 1000;
+                idleTex = Assets.granny2;
+                shootTex = Assets.granny2_2;
             }
         }
 
 
         public void Update(GameTime gameTime)
         {
-            Shooting();
+            midPos.X = (pos.X + tex.Width / 2);
+            midPos.Y = (pos.Y + tex.Height / 2);
+            Animator();
             timer += gameTime.ElapsedGameTime.Milliseconds;
-      
+            
         }
 
         public override void Draw(SpriteBatch spriteBatch)
@@ -67,52 +80,34 @@ namespace LisaMTowerDefence
             spriteBatch.Draw(tex, pos, tint);
         }
 
-        //hoppa fram o tillbaka naj
-        private void Shooting()
+        public Bullet Shooting()
         {
-//INTE SNYGGAST ATT HA MIDPOS HÄR
-
-//FIX GRANNY SHOOTING ANIMATION
-            midPos.X = (pos.X + tex.Width / 2);
-            midPos.Y = (pos.Y + tex.Height / 2);
             if (timer >= reloadShotMiliSec)
             {
-                //System.Diagnostics.Debug.WriteLine("shot");
                 timer = 0;
                 shooting = true;
-                //tex = Assets.granny1_2;
+                return new Bullet(Assets.yarn1, midPos, GetDirection(), towerType);
             }
             else
             {
-                //tex = Assets.granny1;
-                shooting = false;
+               return null;
             }
         }
 
         private Vector2 GetDirection()
         {
-            float X;
-            float Y;
-            float distX = midPos.X - closestEnemyPos.X;
-            if(distX < 20) { X = 1; } else if(distX > -20) { X = -1; } else { X = 0; }
-            float distY = midPos.Y - closestEnemyPos.Y;
-            if (distY < 20) { Y = 1; } else if (distY > -20) { Y = -1; } else { Y = 0; }
-            //System.Diagnostics.Debug.WriteLine("x " + X +" y " + Y);
-            return new Vector2(X,Y);
+            float x = closestEnemyPos.X - midPos.X;
+            float y = closestEnemyPos.Y - midPos.Y;
+            Vector2 delta = new Vector2(x,y);
+            delta.Normalize();
+            return delta;
         }
 
+        //isneeded?
         public bool isShooting
         {
             get { return shooting; }
             set { shooting = value; }
-        }
-
-
-//MAKE LIST OF TOWERS + THEIR TYPE OF BULLET
-//new bullet method
-        public Bullet typeOfBullet
-        {
-            get { return new Bullet(Assets.yarn1, midPos, new Rectangle((int)midPos.X, (int)midPos.Y ,Assets.yarn1.Width, Assets.yarn1.Height), GetDirection(), 1); }
         }
 
         public Vector2 GetTowerPos
@@ -127,6 +122,7 @@ namespace LisaMTowerDefence
             set { closestEnemyPos = value; }
         }
 
+//FIX PROPERTIES
         public int Cost
         {
             get { return cost; }
@@ -135,6 +131,20 @@ namespace LisaMTowerDefence
         public int Reach
         {
             get { return reach; }
+        }
+
+        public void Animator()
+        {
+            if (shooting == true)
+            {
+                tex = shootTex;
+                if(timer >= reloadShotMiliSec / 2 )
+                {
+                    tex = idleTex;
+                    shooting = false;
+                }
+            }
+
         }
     }
 }
