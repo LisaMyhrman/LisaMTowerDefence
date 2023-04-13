@@ -65,16 +65,10 @@ namespace LisaMTowerDefence
         public bool lost { get; private set; }
         public bool paused { get; set; }
 
-
-        
-    
-
         public void LoadGame(GraphicsDevice graphics, ContentManager Content)
         {
             windowWidth = Game1.windowWidth;
             windowHeight = Game1.windowHeight;
-
-            //random = new Random();
 
             //path
             path = new SimplePath(graphics);
@@ -124,15 +118,6 @@ namespace LisaMTowerDefence
             {
                 paused = true;
             }
-
-           //if(!isMusicOn)
-           //{
-           //     MediaPlayer.Pause();
-           //}
-           //else if(isMusicOn)
-           //{
-           //     MediaPlayer.Resume();
-           //}
 
             PickTower();
 
@@ -221,14 +206,6 @@ namespace LisaMTowerDefence
                 bullets[i].Draw(spriteBatch);
             }
 
-            //foreach (Enemy e in enemies)
-            //{
-            //    if (enemyStartPos < path.endT)
-            //    {
-            //        e.Draw(spriteBatch);
-            //        e.DrawHealthBar(spriteBatch);
-            //    }
-            //}
             for (int i = 0; i < enemies.Count; i++)
             {
                 enemies[i].Draw(spriteBatch);
@@ -383,9 +360,7 @@ namespace LisaMTowerDefence
                     bullets.Remove(b);
                     
                 }
-           
             }
-          
         }
 
         private async void WaveHandler(GameTime gameTime)

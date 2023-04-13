@@ -38,7 +38,6 @@ namespace LisaMTowerDefence
             this.towerType = towerType;
             tint = Color.White;
 
-            //SWITCHCASE??
             if(towerType == 1)
             {
                 //default
@@ -125,7 +124,6 @@ namespace LisaMTowerDefence
             set { closestEnemyPos = value; }
         }
 
-//FIX PROPERTIES
         public int Cost
         {
             get { return cost; }

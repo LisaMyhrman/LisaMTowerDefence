@@ -15,11 +15,10 @@ namespace LisaMTowerDefence
 {
     internal class Assets
     {
-//consistency naming, change
         public static Texture2D tinyCatTex, catTex, catTex2, cat2, cat2_2, yarn1, yarn2, yarn3, level1Background, granny1, granny1_2, granny2, granny2_2, granny3, granny3_2, particle, confusion, renderTargetBackground, fishTex, cookie;
         public static SpriteFont font;
         public static Song song;
-        //public static SoundEffect meow;
+
 
         public static void Load(ContentManager cm)
         {
@@ -45,7 +44,6 @@ namespace LisaMTowerDefence
             cookie = cm.Load<Texture2D>("cookie");
             font = cm.Load<SpriteFont>("File");
             song = cm.Load<Song>("td_music");
-            //meow = cm.Load<SoundEffect>("meow");
 
         }
     }

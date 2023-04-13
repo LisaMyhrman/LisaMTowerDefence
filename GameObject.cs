@@ -11,8 +11,6 @@ namespace LisaMTowerDefence
     //kolla accesability
     public class GameObject
     {
-
-        //ändra standard efter inistiering
         public Vector2 pos;
         public Texture2D tex;
         public Rectangle hitbox;

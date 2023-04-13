@@ -38,7 +38,6 @@ namespace LisaMTowerDefence
             {
                 if(amount >= 0)
                 {
-//ADD SPACING
                     particles.Add(new Particle(position, Assets.particle, getDirection()));
                     amount--;
                 }

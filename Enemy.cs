@@ -25,19 +25,14 @@ namespace LisaMTowerDefence
         bool stunned;
         float stunTimer;
         float stunnedTime;
-        //GameManager manager;
-
 
         public Enemy(Texture2D texture, Vector2 position, int enemyType) : base(texture, position)
         {
-            //manager = new GameManager();
-            //posOnPath = 0;
             posOnPath = position.X;
             animateTimer = 0;
             stunTimer = 0;
             animationInterval = 1000;
             this.enemyType = enemyType;
-
 
             if (enemyType == 1)
             {
@@ -131,7 +126,6 @@ namespace LisaMTowerDefence
             }
             else
             {
-                //tex = Assets.tinyCatTex;
                 if (enemyType == 1)
                 { tex = Assets.tinyCatTex; }
                 else if(enemyType == 2)

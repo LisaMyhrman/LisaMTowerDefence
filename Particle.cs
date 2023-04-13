@@ -14,7 +14,6 @@ namespace LisaMTowerDefence
     {
         private Vector2 position;
         private int age;
-        //private Color color;
         private Texture2D texture;
         private Vector2 direction;
         
@@ -29,7 +28,6 @@ namespace LisaMTowerDefence
 
         public void Update()
         {
-//speed
             position += direction;
             age++;
         }

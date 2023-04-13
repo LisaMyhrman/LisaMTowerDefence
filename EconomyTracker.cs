@@ -17,11 +17,5 @@ namespace LisaMTowerDefence
         {
             currentCoins += value;
         }
-
-        //public static int GetCoins()
-        //{
-        //    return currentCoins;
-        //}
-
     }
 }
