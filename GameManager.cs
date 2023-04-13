@@ -36,8 +36,6 @@ namespace LisaMTowerDefence
         float enemyOffSet;
 
         //towers
-        //private bool changedRender = false;
-        //private Tower test;
         Tower chosenTower = null;
 
         //ska listan innehålla almänna towers, beroende på olika typer osvosv?
@@ -48,7 +46,6 @@ namespace LisaMTowerDefence
 
 
         //partikeltest
-        //private ParticleEmitter particleEmitter;
         List<ParticleEmitter> particleEmitters = new List<ParticleEmitter>();
 
         //waves
@@ -67,7 +64,7 @@ namespace LisaMTowerDefence
         PausForm pausForm;
         public bool lost { get; private set; }
         public bool paused { get; set; }
-        //public bool isMusicOn;
+
 
         
     

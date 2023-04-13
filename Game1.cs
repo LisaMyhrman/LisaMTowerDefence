@@ -105,9 +105,6 @@ namespace LisaMTowerDefence
         {
             switch(currentState)
             {
-                //case GameState.menu:
-                //    break;
-
                 case GameState.playing:
                     gameManager.Draw(spriteBatch, GraphicsDevice);
                     break;
