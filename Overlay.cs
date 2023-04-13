@@ -33,7 +33,7 @@ namespace LisaMTowerDefence
             //wavetimer
             if(GameManager.waveTimer > 0)
             {
-                spriteBatch.DrawString(Assets.font, "Time until next Cattack: " + (int)((GameManager.waveCoolDown - GameManager.waveTimer)/1000), new Vector2(200, Game1.windowHeight / 2), Color.Black);
+                spriteBatch.DrawString(Assets.font, "Time until next Cattack: " + (int)((GameManager.waveCoolDown - GameManager.waveTimer)/1000), new Vector2(300, Game1.windowHeight / 2), Color.Black);
             }
 
             //coins
@@ -41,7 +41,10 @@ namespace LisaMTowerDefence
             spriteBatch.Draw(Assets.cookie, new Vector2(60, Game1.windowHeight - 60), Color.White);
 
             //menu
-            spriteBatch.DrawString(Assets.font, "Menu: press 'p'", Vector2.Zero, Color.Black);
+            spriteBatch.DrawString(Assets.font, "Menu: press 'p'", new Vector2(25,0), Color.Black);
+
+            //wavenumber
+            spriteBatch.DrawString(Assets.font, "Wave : " + GameManager.prevWaveNumber, new Vector2(Game1.windowWidth - 200, Game1.windowHeight - 50), Color.Black);
         }
 
     }

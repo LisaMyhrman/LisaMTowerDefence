@@ -20,24 +20,17 @@ namespace LisaMTowerDefence
         //spline
         SimplePath path;
 
-        //public Random random = new Random();
-
         public static int playerHealth { get; private set; }
-
-        //textures
-        //Texture2D catTex;
-        //Texture2D tinyCatTex;
 
         //rendertarget
         RenderTarget2D renderTest;
 
-        //object following mouse(currently selected object)
+        //inputs
         Vector2 mousePos;
         MouseState mouseState;
         KeyboardState keyState;
 
         //enemies
-        //private Enemy enemy;
         float enemyStartPos;
         List<Enemy> enemies = new List<Enemy>();
         float enemyOffSet;
@@ -60,7 +53,7 @@ namespace LisaMTowerDefence
 
         //waves
         int waveNumber;
-        int prevWaveNumber;
+        public static int prevWaveNumber { get; private set; }
         public static float waveTimer { get; private set; }
         public static float waveCoolDown { get; private set; }
         List<Enemy> waves = new List<Enemy>();
@@ -91,7 +84,7 @@ namespace LisaMTowerDefence
             path.Clean();
 
 
-            playerHealth = 1;
+            playerHealth = 3;
             waveCoolDown = 5000;
 
             waveNumber = 1;
@@ -188,12 +181,16 @@ namespace LisaMTowerDefence
                 }
             }
 
+            //forloop instead of foreach where collection is edited while looping
             for (int i = 0; i < bullets.Count; i++)
             {
                 if(bullets[i] != null)
                 {
-                bullets[i].Update();
-                BulletCollision(bullets[i]);
+                    bullets[i].Update();
+                    if(!CheckDistanceBullets(bullets[i]))
+                    {
+                        BulletCollision(bullets[i]);
+                    }
                 }
             }
 
@@ -351,6 +348,16 @@ namespace LisaMTowerDefence
             return false;
         }
 
+        private bool CheckDistanceBullets(Bullet b)
+        {
+            if (GetDistance(b.spawnPos, b.pos) >= 1000)
+            {
+                bullets.Remove(b);
+                return true;
+            }
+            else return false;
+        }
+
         private float GetDistance(Vector2 one, Vector2 two)
         {
             //used in checkdistance
@@ -375,10 +382,13 @@ namespace LisaMTowerDefence
             {
                 if (b.IsColliding(e.hitbox))
                 {
-                    e.HealthPowerMaster(b.Damage, b.slowing);
+                    e.HealthPowerMaster(b.Damage, b.slowing, b.stunning);
                     bullets.Remove(b);
+                    
                 }
+           
             }
+          
         }
 
         private async void WaveHandler(GameTime gameTime)
@@ -389,12 +399,14 @@ namespace LisaMTowerDefence
                 case 0:
                     if (enemies.Count <= 0)
                     {
+                        //if wave is last and all enemies are killed, win
                         if(prevWaveNumber == 4)
                         {
                             winForm.Show();
                         }
                         else
                         {
+                        //wait for next wave
                             waveTimer += gameTime.ElapsedGameTime.Milliseconds;
                             if (waveTimer >= waveCoolDown)
                             {

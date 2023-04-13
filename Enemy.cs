@@ -13,6 +13,7 @@ namespace LisaMTowerDefence
     internal class Enemy : GameObject
     {
         private float speed;
+        float startSpeed;
         private float posOnPath;
         private int health;
         private int startHealth;
@@ -21,15 +22,19 @@ namespace LisaMTowerDefence
         private float animateTimer;
         private float animationInterval;
         private Vector2 midPos;
-        GameManager manager;
+        bool stunned;
+        float stunTimer;
+        float stunnedTime;
+        //GameManager manager;
 
 
         public Enemy(Texture2D texture, Vector2 position, int enemyType) : base(texture, position)
         {
-            manager = new GameManager();
+            //manager = new GameManager();
             //posOnPath = 0;
             posOnPath = position.X;
             animateTimer = 0;
+            stunTimer = 0;
             animationInterval = 1000;
             this.enemyType = enemyType;
 
@@ -40,6 +45,7 @@ namespace LisaMTowerDefence
                 health = 2;
                 value = 2;
                 tex = Assets.tinyCatTex;
+                stunnedTime = 2000;
             }
             else if (enemyType == 2)
             {
@@ -47,27 +53,37 @@ namespace LisaMTowerDefence
                 health = 3;
                 value = 3;
                 tex = Assets.cat2;
+                stunnedTime = 1000;
             }
             startHealth = health;
+            startSpeed = speed;
+
 
         }
-
-        //MAKE HITBOX SLIGHTLY SMALER FOR EASE?, PIXELPERFECT COLLISIONS?
 
         public void Update(GameTime gameTime)
         {
             animateTimer += gameTime.ElapsedGameTime.Milliseconds;
+
             posOnPath = posOnPath + speed;
             hitbox.X = (int)pos.X;
             hitbox.Y = (int)pos.Y;
             midPos.X = pos.X + tex.Width / 2;
             midPos.Y = pos.Y + tex.Height / 2;
             Animate();
+            if(stunned)
+            {
+                stunTimer += gameTime.ElapsedGameTime.Milliseconds;
+                if(stunTimer >= stunnedTime)
+                {
+                    stunned = false;
+                    speed = startSpeed;
+                }
+            }
         }
 
         public void DrawHealthBar(SpriteBatch spriteBatch)
         {
-            //bars need to be bigger, draw new/scale them
             spriteBatch.Draw(Assets.confusion, new Rectangle((int)pos.X, (int)pos.Y - Assets.confusion.Height * 2, (Assets.confusion.Width / startHealth) * health * 2, Assets.confusion.Height * 2), new Rectangle(0, 0, (Assets.confusion.Width / startHealth) * health, Assets.confusion.Height), Color.White);
         }
 
@@ -77,13 +93,17 @@ namespace LisaMTowerDefence
             set { posOnPath = value; }
         }
 
-        //slowing effect works, more powers here?
-        public void HealthPowerMaster(int damage, bool slowing)
+        public void HealthPowerMaster(int damage, bool slowing, bool stunning)
         {
             health = health - damage;
             if (slowing)
             {
                 speed = speed / 2;
+            }
+            if(stunning)
+            {
+                stunned = true;
+                speed = 0;
             }
         }
 
@@ -99,7 +119,8 @@ namespace LisaMTowerDefence
 
         public void Animate()
         {
-            //fix animation for different sprites
+            if(!stunned)
+            { 
             if (animateTimer >= animationInterval)
             {
                 if (enemyType == 1)
@@ -115,6 +136,7 @@ namespace LisaMTowerDefence
                 { tex = Assets.tinyCatTex; }
                 else if(enemyType == 2)
                 { tex = Assets.cat2_2; }
+            }
             }
 
             if (animateTimer >= animationInterval * 2)

@@ -41,6 +41,7 @@ namespace LisaMTowerDefence
             //SWITCHCASE??
             if(towerType == 1)
             {
+                //default
                 cost = 1;
                 reach = 300;
                 reloadShotMiliSec = 2000;
@@ -49,6 +50,7 @@ namespace LisaMTowerDefence
             }
             else if(towerType == 2)
             {
+                //slowing bullets
                 cost = 3;
                 reach = 600;
                 reloadShotMiliSec = 2000;
@@ -57,9 +59,10 @@ namespace LisaMTowerDefence
             }
             else if(towerType == 3)
             {
-                cost = 4;
+                //stunned bullets
+                cost = 5;
                 reach = 500;
-                reloadShotMiliSec = 1000;
+                reloadShotMiliSec = 5000;
                 idleTex = Assets.granny2;
                 shootTex = Assets.granny2_2;
             }
